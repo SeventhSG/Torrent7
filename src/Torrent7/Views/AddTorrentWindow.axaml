@@ -1,0 +1,83 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Torrent7.ViewModels"
+        xmlns:c="using:Torrent7.Controls"
+        x:Class="Torrent7.Views.AddTorrentWindow"
+        x:DataType="vm:AddTorrentViewModel"
+        Title="Add torrent"
+        Icon="avares://Torrent7/Assets/Torrent7.ico"
+        Width="680" Height="560" MinWidth="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="24,20,24,20">
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Classes="h1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <TextBlock Classes="dim" Text="{Binding Summary}" />
+                <TextBlock Classes="accent" FontSize="12" VerticalAlignment="Center" Text="Private torrent" IsVisible="{Binding IsPrivate}"
+                           ToolTip.Tip="Its tracker keeps count. Torrent7 will not add other trackers to it." />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Spacing="6" Margin="0,18,0,12">
+            <TextBlock Classes="label" Text="Save in" />
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding SaveDir}" />
+                <Button Grid.Column="1" Margin="6,0,0,0" Content="Browse" Command="{Binding BrowseCommand}" />
+            </Grid>
+            <TextBlock FontSize="12" Text="{Binding SpaceText}" Classes="faint" Classes.danger="{Binding SpaceShort}" />
+        </StackPanel>
+
+        <!-- Files, or the wait for them -->
+        <Border Grid.Row="2" Classes="surface" Padding="6">
+            <Panel>
+                <StackPanel IsVisible="{Binding IsFetching}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="380">
+                    <ProgressBar IsIndeterminate="True" Width="200" />
+                    <TextBlock Classes="dim" TextWrapping="Wrap" TextAlignment="Center"
+                               Text="Asking peers for the file list. Popular torrents answer in seconds; rare ones can take a while." />
+                    <Button HorizontalAlignment="Center" Content="Add without waiting" Command="{Binding AddWithoutWaitingCommand}" />
+                </StackPanel>
+                <TextBlock IsVisible="{Binding FetchError, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="danger" TextWrapping="Wrap"
+                           Margin="12" Text="{Binding FetchError}" />
+                <Grid RowDefinitions="Auto,*" IsVisible="{Binding !IsFetching}">
+                    <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasFiles}" Margin="2,0,0,4">
+                        <Button Classes="ghost" Content="Select all" Command="{Binding SelectAllCommand}">
+                            <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
+                        </Button>
+                        <Button Classes="ghost" Content="Select none" Command="{Binding SelectAllCommand}">
+                            <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
+                        </Button>
+                    </StackPanel>
+                    <ListBox Grid.Row="1" Classes="compact" ItemsSource="{Binding Files}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:FileChoice">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <CheckBox IsChecked="{Binding Include}" MinWidth="0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Path}" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" ToolTip.Tip="{Binding Path}" />
+                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="dim mono" FontSize="12" VerticalAlignment="Center" Margin="12,0,6,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Panel>
+        </Border>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="20" Margin="0,14,0,0">
+            <CheckBox IsChecked="{Binding Start}" Content="Start right away" />
+            <CheckBox IsChecked="{Binding Sequential}" Content="Download in order"
+                      ToolTip.Tip="Fetches pieces front to back so a video can start playing early. Slower on torrents with few seeds." />
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Classes="ghost" Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
+            <Button Classes="accent" Padding="24,6" Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" IsDefault="True">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <c:StrokeIcon Data="{StaticResource IconDown}" />
+                    <TextBlock Text="Add" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

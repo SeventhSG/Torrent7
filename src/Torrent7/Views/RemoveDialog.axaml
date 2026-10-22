@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Torrent7.Views.RemoveDialog"
+        Title="Remove torrent"
+        Icon="avares://Torrent7/Assets/Torrent7.ico"
+        Width="460" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <StackPanel Margin="24,20" Spacing="12">
+        <TextBlock Classes="h2" Text="Remove this torrent from the list?" />
+        <TextBlock x:Name="NameText" Classes="dim" TextWrapping="Wrap" />
+        <CheckBox x:Name="DeleteBox" Content="Also delete the downloaded files from disk" />
+        <TextBlock x:Name="DeleteWarning" Classes="danger" FontSize="12" TextWrapping="Wrap" IsVisible="False"
+                   Text="The files go straight away, not to the recycle bin." />
+        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,6,0,0">
+            <Button Classes="ghost" Content="Cancel" Click="OnCancel" IsCancel="True" />
+            <Button x:Name="RemoveButton" Content="Remove" Click="OnRemove" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

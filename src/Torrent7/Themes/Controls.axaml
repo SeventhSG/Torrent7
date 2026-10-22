@@ -1,0 +1,326 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Control styles on top of Fluent dark. Motion budget: none on anything a person does
+        a hundred times a day (hover, select, the list ticking), so the only transitions in
+        the app are the banner and the toasts.
+    -->
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource BgBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style Selector="TextBlock.dim"><Setter Property="Foreground" Value="{StaticResource TextDimBrush}" /></Style>
+    <Style Selector="TextBlock.faint"><Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" /></Style>
+    <Style Selector="TextBlock.mono"><Setter Property="FontFamily" Value="{StaticResource MonoFont}" /></Style>
+    <Style Selector="TextBlock.accent"><Setter Property="Foreground" Value="{StaticResource AccentBrush}" /></Style>
+    <Style Selector="TextBlock.danger"><Setter Property="Foreground" Value="{StaticResource DangerBrush}" /></Style>
+    <Style Selector="TextBlock.h1">
+        <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+    </Style>
+
+    <!-- Buttons -->
+
+    <Style Selector="Button">
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="Button:pressed">
+        <Setter Property="RenderTransform" Value="scale(0.98)" />
+    </Style>
+    <Style Selector="Button:disabled /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+    </Style>
+
+    <Style Selector="Button.accent">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentPressBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentPressBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+    </Style>
+
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="{StaticResource DangerSoftBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerSoftBrush}" />
+    </Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <Style Selector="Button.icon">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- The left rail: icon over a short label, the active page marked in amber. -->
+    <Style Selector="ToggleButton.rail">
+        <Setter Property="Width" Value="64" />
+        <Setter Property="Height" Value="56" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ToggleButton.rail:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.rail:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <!-- A plain toggle in the top bar: quiet when off, amber when on. -->
+    <Style Selector="ToggleButton.switch">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ToggleButton.switch:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.switch:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentPressBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.switch.active">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <!-- Filter chips above the list. -->
+    <Style Selector="RadioButton.chip">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="chip" CornerRadius="{StaticResource PillRadius}" Padding="12,5"
+                        Background="Transparent" BorderBrush="{StaticResource LineBrush}" BorderThickness="1">
+                    <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="RadioButton.chip:pointerover /template/ Border#chip">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+    </Style>
+    <Style Selector="RadioButton.chip:checked">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="RadioButton.chip:checked /template/ Border#chip">
+        <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentSoftBrush}" />
+    </Style>
+
+    <!-- Inputs -->
+
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="SelectionBrush" Value="{StaticResource AccentSoftBrush}" />
+        <Setter Property="CaretBrush" Value="{StaticResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="TextBox /template/ TextBlock#PART_Watermark">
+        <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ TextBlock#PART_Watermark">
+        <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+    </Style>
+
+    <Style Selector="NumericUpDown">
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Width" Value="150" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="FormatString" Value="0" />
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="MinHeight" Value="32" />
+    </Style>
+
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Background" Value="{StaticResource SunkenBrush}" />
+        <Setter Property="MinHeight" Value="3" />
+        <Setter Property="Height" Value="3" />
+        <Setter Property="CornerRadius" Value="2" />
+    </Style>
+    <Style Selector="ProgressBar.done">
+        <Setter Property="Foreground" Value="{StaticResource UpBrush}" />
+    </Style>
+    <Style Selector="ProgressBar.error">
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    </Style>
+    <Style Selector="ProgressBar.paused">
+        <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+    </Style>
+
+    <!-- The torrent list -->
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.rows > ListBoxItem">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBox.rows > ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+    </Style>
+    <Style Selector="ListBox.rows > ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+    </Style>
+    <Style Selector="ListBox.rows > ListBoxItem:selected:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+    </Style>
+    <Style Selector="ListBox.rows > ListBoxItem:selected:focus /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+    </Style>
+
+    <!-- Dense lists inside panels: files, the add dialog. -->
+    <Style Selector="ListBox.compact > ListBoxItem">
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="MinHeight" Value="34" />
+    </Style>
+    <Style Selector="ListBox.compact CheckBox">
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="4,0" />
+    </Style>
+    <Style Selector="ListBox.compact ComboBox">
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="8,2" />
+    </Style>
+
+    <Style Selector="TabControl">
+        <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+    </Style>
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+    <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <Style Selector="Border.surface">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource SurfaceRadius}" />
+    </Style>
+
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{StaticResource LineBrush}" />
+        <Setter Property="Margin" Value="0,8" />
+    </Style>
+
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="MaxWidth" Value="340" />
+    </Style>
+
+    <Style Selector="ContextMenu, MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceHiBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource LineStrongBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SurfaceRadius}" />
+    </Style>
+    <Style Selector="MenuItem.danger">
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="True" />
+    </Style>
+
+</Styles>

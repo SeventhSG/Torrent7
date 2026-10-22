@@ -1,0 +1,12 @@
+bin/
+obj/
+publish/
+dist/
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+desktop.ini
+.DS_Store
+Torrent7-data/
