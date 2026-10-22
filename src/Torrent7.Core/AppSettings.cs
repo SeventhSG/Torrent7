@@ -49,6 +49,12 @@ public sealed class AppSettings
     /// <summary>Closing the window keeps transfers going from the tray instead of quitting.</summary>
     public bool CloseToTray { get; set; } = true;
 
+    /// <summary>Scan each finished download with the system's own virus scanner.</summary>
+    public bool ScanDownloads { get; set; } = true;
+
+    /// <summary>Optional. With a key, program files are also looked up on VirusTotal by hash.</summary>
+    public string? VirusTotalKey { get; set; }
+
     /// <summary>What the last speed test measured, in bits per second. 0 until one has run.</summary>
     public long MeasuredDownBps { get; set; }
     public long MeasuredUpBps { get; set; }

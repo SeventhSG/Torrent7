@@ -41,9 +41,10 @@
                             </StackPanel>
                         </Border>
 
-                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <StackPanel Grid.Row="0" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Size" /><TextBlock Classes="val" Text="{Binding InfoSize}" /></StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Pieces" /><TextBlock Classes="val" Text="{Binding InfoPieces}" /></StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Classes="fact"><TextBlock Classes="key" Text="Virus scan" /><TextBlock Classes="val" Text="{Binding InfoScan}" ToolTip.Tip="{Binding InfoScan}" /></StackPanel>
                             <StackPanel Grid.Row="2" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Type" /><TextBlock Classes="val" Text="{Binding InfoType}" ToolTip.Tip="{Binding InfoType}" /></StackPanel>
                             <StackPanel Grid.Row="0" Grid.Column="1" Classes="fact"><TextBlock Classes="key" Text="Downloaded" /><TextBlock Classes="val" Text="{Binding InfoDownloaded}" /></StackPanel>
                             <StackPanel Grid.Row="1" Grid.Column="1" Classes="fact"><TextBlock Classes="key" Text="Uploaded" /><TextBlock Classes="val" Text="{Binding InfoUploaded}" /></StackPanel>

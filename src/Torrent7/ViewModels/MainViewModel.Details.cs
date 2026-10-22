@@ -30,6 +30,7 @@ public sealed partial class MainViewModel
     [ObservableProperty] private string infoProgress = "";
     [ObservableProperty] private string infoComment = "";
     [ObservableProperty] private string infoType = "";
+    [ObservableProperty] private string infoScan = "";
     [ObservableProperty] private string infoPeers = "";
     [ObservableProperty] private string? infoError;
     [ObservableProperty] private string filesEmptyText = "";
@@ -108,6 +109,7 @@ public sealed partial class MainViewModel
         InfoComment = t?.Comment?.Trim() ?? "";
         InfoType = t == null ? "Unknown until the file list arrives" : t.IsPrivate ? "Private. DHT, peer exchange and tracker boost stay off." : "Public";
         InfoError = e.ErrorText;
+        InfoScan = e.Scanning ? "Scanning now" : e.Record.ScanMessage ?? (e.IsComplete ? "Not scanned" : "Runs when the download finishes");
     }
 
     /// <summary>Squeezes the torrent's pieces into a few hundred buckets for the piece map.</summary>

@@ -29,6 +29,10 @@ public sealed class TorrentRecord
 
     /// <summary>Files the user changed from Normal, keyed by their path inside the torrent.</summary>
     public Dictionary<string, Priority> FilePriorities { get; set; } = [];
+
+    /// <summary>What the virus scan said about the finished download, if one ran.</summary>
+    public ScanVerdict? ScanVerdict { get; set; }
+    public string? ScanMessage { get; set; }
 }
 
 internal static class SessionStore

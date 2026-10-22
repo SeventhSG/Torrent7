@@ -225,6 +225,12 @@ foreach (var (id, expected) in new[] { ("-qB4630-abcdefghijkl", "qBittorrent 4.6
 }
 Check("PeerClients.Name of garbage is Unknown", PeerClients.Name("xyz"u8, "Unknown") == "Unknown", "garbage leaked through");
 
+// Safety: what counts as a program, and what counts as a program in disguise
+Check("Safety.IsProgram(setup.exe)", Safety.IsProgram("Game/setup.exe"), "an installer was not flagged");
+Check("Safety.IsProgram(movie.mkv) is false", !Safety.IsProgram("Film/movie.mkv"), "a film was flagged");
+Check("Safety.IsDisguised(movie.mp4.exe)", Safety.IsDisguised("Film/movie.mp4.exe"), "a disguised program slipped through");
+Check("Safety.IsDisguised(setup.exe) is false", !Safety.IsDisguised("setup.exe"), "a plain installer was called disguised");
+
 // A real download over loopback, through the same service the app uses.
 try
 {

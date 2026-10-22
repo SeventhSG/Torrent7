@@ -16,6 +16,7 @@ public enum Filter { All, Downloading, Seeding, Completed, Paused, Errors }
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly TorrentService service;
+    private readonly HttpClient http;
     private readonly Dictionary<string, TorrentRowViewModel> rowsById = [];
     private readonly HashSet<string> dismissedClipboard = [];
     private IReadOnlyList<TorrentRowViewModel> selection = [];
@@ -24,6 +25,7 @@ public sealed partial class MainViewModel : ObservableObject
     public MainViewModel(TorrentService service, HttpClient http, IShell shell)
     {
         this.service = service;
+        this.http = http;
         Shell = shell;
         Settings = new SettingsViewModel(service, shell, () => { RefreshTop(); StartWatchFolder(); });
         SpeedTest = new SpeedTestViewModel(service, http, shell, () => { Settings.Reload(); RefreshTop(); return Task.CompletedTask; });
@@ -48,7 +50,8 @@ public sealed partial class MainViewModel : ObservableObject
         service.Removed += e => Ui(() => RemoveRow(e));
         service.Completed += e => Ui(() =>
         {
-            if (service.Settings.NotifyOnComplete) Shell.Notify("Download finished", e.Name);
+            if (service.Settings.ScanDownloads) _ = ScanAsync(e);
+            else if (service.Settings.NotifyOnComplete) Shell.Notify("Download finished", e.Name);
         });
         service.Problem += msg => Ui(() => Shell.Notify("Something went wrong", msg, error: true));
 
@@ -103,6 +106,9 @@ public sealed partial class MainViewModel : ObservableObject
     public bool IsSettings => Page == Page.Settings;
     public bool IsEmpty => CountAll == 0;
     public bool NothingMatches => CountAll > 0 && Rows.Count == 0;
+
+    /// <summary>A short list leaves room: use it to say how to add the next one.</summary>
+    public bool ShowDropHint => Rows.Count is > 0 and < 8 && !ShowDetails;
     public bool HasSelection => SelectionCount > 0;
     public bool ShowDetails => Selected != null;
     public string ListTitle => Search.Trim().Length > 0 ? $"Results for \"{Search.Trim()}\"" : SelectedFilter?.Title ?? "All transfers";
@@ -146,6 +152,7 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnSelectedChanged(TorrentRowViewModel? value)
     {
         OnPropertyChanged(nameof(ShowDetails));
+        OnPropertyChanged(nameof(ShowDropHint));
         LoadDetails(value);
     }
 
@@ -279,6 +286,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var r in wanted)
             if (!Rows.Contains(r)) Rows.Add(r);
         OnPropertyChanged(nameof(NothingMatches));
+        OnPropertyChanged(nameof(ShowDropHint));
     }
 
     // ------------------------------------------------------------------ adding
@@ -422,6 +430,33 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (ClipboardOffer != null) dismissedClipboard.Add(ClipboardOffer);
         ClipboardOffer = null;
+    }
+
+    // ------------------------------------------------------------------ virus scan
+
+    /// <summary>Scans a finished download, then says so. A threat is always shown, notifications or not.</summary>
+    private async Task ScanAsync(TorrentEntry e)
+    {
+        var path = e.HasMetadata && e.Manager.Files.Count > 1 ? e.Manager.ContainingDirectory : e.Manager.Files.FirstOrDefault()?.FullPath ?? e.Record.SaveDir;
+        e.Scanning = true;
+        try
+        {
+            var result = await Safety.ScanLocalAsync(path);
+            if (result.Verdict != ScanVerdict.Threat && !string.IsNullOrWhiteSpace(service.Settings.VirusTotalKey))
+            {
+                var vt = await Safety.CheckVirusTotalAsync(http, service.Settings.VirusTotalKey!, e.Manager.Files.Select(f => f.FullPath).Where(File.Exists));
+                if (vt.Verdict == ScanVerdict.Threat) result = vt;
+            }
+            e.Record.ScanVerdict = result.Verdict;
+            e.Record.ScanMessage = result.Message;
+            service.SaveSession();
+            Log.Info($"scan {e.Name}: {result.Verdict} {result.Message}");
+            if (result.Verdict == ScanVerdict.Threat) Shell.Notify("Threat found in " + e.Name, result.Message, error: true);
+            else if (service.Settings.NotifyOnComplete)
+                Shell.Notify("Download finished", result.Verdict == ScanVerdict.Clean ? $"{e.Name}. Scanned, nothing found." : $"{e.Name}. {result.Message}");
+        }
+        catch (Exception ex) { Log.Error("scan " + e.Name, ex); }
+        finally { e.Scanning = false; }
     }
 
     // ------------------------------------------------------------------ watch folder

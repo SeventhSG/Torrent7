@@ -62,6 +62,8 @@ public sealed partial class AddTorrentViewModel : ObservableObject
     [ObservableProperty] private bool isPrivate;
     [ObservableProperty] private bool hasFiles;
     [ObservableProperty] private bool noFileList = true;
+    [ObservableProperty] private string? riskText;
+    [ObservableProperty] private bool riskSevere;
 
     /// <summary>Set by the window when the user confirms; read back by the caller.</summary>
     public AddRequest? Result { get; private set; }
@@ -102,6 +104,14 @@ public sealed partial class AddTorrentViewModel : ObservableObject
         foreach (var f in torrent.Files.OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase))
             Files.Add(new FileChoice(f.Path, f.Length, UpdateSummary));
         HasFiles = Files.Count > 1;
+        var disguised = Files.Where(f => Safety.IsDisguised(f.Path)).Select(f => Path.GetFileName(f.Path)).ToList();
+        var programs = Files.Where(f => Safety.IsProgram(f.Path)).Select(f => Path.GetFileName(f.Path)).ToList();
+        RiskSevere = disguised.Count > 0;
+        RiskText = disguised.Count > 0
+            ? $"{disguised[0]} is a program pretending to be another kind of file. That is a classic malware trick: untick it, or do not add this torrent."
+            : programs.Count > 0
+                ? $"Contains {(programs.Count == 1 ? "a program" : $"{programs.Count} programs")} ({string.Join(", ", programs.Take(2))}{(programs.Count > 2 ? ", ..." : "")}). Only run programs from people you trust. Torrent7 scans downloads when they finish."
+                : null;
         NoFileList = Files.Count == 0;
     }
 

@@ -61,6 +61,10 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool notifyOnComplete;
     [ObservableProperty] private bool closeToTray;
     [ObservableProperty] private decimal? diskCache;
+    [ObservableProperty] private bool scanDownloads;
+    [ObservableProperty] private string? virusTotalKey;
+
+    public string ScannerName => OperatingSystem.IsWindows() ? "Windows Defender" : "ClamAV";
 
     [ObservableProperty] private bool isDirty;
     [ObservableProperty] private string? error;
@@ -102,6 +106,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         NotifyOnComplete = s.NotifyOnComplete;
         CloseToTray = s.CloseToTray;
         DiskCache = s.DiskCacheMiB;
+        ScanDownloads = s.ScanDownloads;
+        VirusTotalKey = s.VirusTotalKey;
         Error = null;
         loading = false;
         savedJson = Snapshot(Build(out _));
@@ -148,6 +154,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         s.NotifyOnComplete = NotifyOnComplete;
         s.CloseToTray = CloseToTray;
         s.DiskCacheMiB = (int)(DiskCache ?? 64);
+        s.ScanDownloads = ScanDownloads;
+        s.VirusTotalKey = string.IsNullOrWhiteSpace(VirusTotalKey) ? null : VirusTotalKey.Trim();
         return s;
     }
 

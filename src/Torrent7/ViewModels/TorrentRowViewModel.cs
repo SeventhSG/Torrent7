@@ -69,7 +69,14 @@ public sealed partial class TorrentRowViewModel(TorrentEntry entry) : Observable
             EntryStatus.Error => "Error",
             _ => "",
         };
-        (StateIcon, StateBrush) = Look(Status);
+        if (e.Scanning) StatusText = "Scanning for viruses";
+        else if (e.Record.ScanVerdict == ScanVerdict.Threat)
+        {
+            StatusText = "Threat found";
+            IsError = true;
+            ErrorText = e.Record.ScanMessage;
+        }
+        (StateIcon, StateBrush) = Look(IsError ? EntryStatus.Error : Status);
         // The meter is amber while data comes in, quiet once it is done, red when it failed.
         MeterBrush = Res.Get<IBrush>(IsError ? "DangerBrush" : IsDone ? "UpBrush" : IsIdle ? "TextFaintBrush" : "AccentBrush");
 

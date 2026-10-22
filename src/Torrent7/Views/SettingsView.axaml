@@ -83,6 +83,12 @@
                         <TextBlock Text="Behaviour" VerticalAlignment="Center" />
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="Safety">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconShield}" Width="16" Height="16" />
+                        <TextBlock Text="Safety" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="System">
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <c:StrokeIcon Classes="navicon" Data="{StaticResource IconInfo}" Width="16" Height="16" />
@@ -95,9 +101,9 @@
         <ScrollViewer Grid.Column="1" x:Name="Scroller">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="760" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel Margin="12,46,28,24">
+                <StackPanel x:Name="Pages" Margin="12,20,28,24">
 
-                    <TextBlock x:Name="Downloads" Classes="group" Text="Downloads" Margin="2,0,0,10" />
+                    <TextBlock x:Name="Downloads" Classes="group" Text="Downloads" />
                     <Border Classes="card">
                         <StackPanel>
                             <Grid Classes="row" ColumnDefinitions="*,Auto">
@@ -318,6 +324,47 @@
                                     <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="MiB" /></NumericUpDown.InnerRightContent>
                                 </NumericUpDown>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="Safety" Classes="group" Text="Safety" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Scan finished downloads" />
+                                    <TextBlock Classes="hint" Text="{Binding ScannerName, StringFormat='Checks every finished download with {0}, which is already on your computer. Nothing is uploaded.'}" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ScanDownloads}" Margin="0,0,-10,0" AutomationProperties.Name="Scan finished downloads" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Also ask VirusTotal" />
+                                    <TextBlock Classes="hint" Text="Optional. With your free API key from virustotal.com, programs in a download are looked up by fingerprint (a SHA-256 hash). The files themselves never leave your computer." />
+                                </StackPanel>
+                                <TextBox Grid.Column="1" Width="230" Text="{Binding VirusTotalKey}" PasswordChar="*" Watermark="API key" AutomationProperties.Name="VirusTotal API key" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Encryption" />
+                                    <TextBlock Classes="hint" Text="Set under Connection. Encrypted connections hide what you transfer from your network provider." />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border Classes="card" Padding="18,16">
+                        <StackPanel Spacing="10">
+                            <TextBlock Classes="heading" Text="How torrents connect" />
+                            <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
+                                       Text="BitTorrent has no central server holding the files. Each download comes in small pieces straight from other people who have it, and every piece is checked against a fingerprint inside the torrent, so a damaged or swapped piece is thrown away, never saved." />
+                            <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
+                                       Text="To find those people, Torrent7 asks trackers (servers that only keep a list of who has what) and the DHT, a shared address book run by the peers themselves. Neither ever sees your files." />
+                            <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
+                                       Text="What a torrent cannot check is whether the person who made it was honest. That is why programs get a warning when you add them, and why finished downloads are scanned." />
+                            <TextBlock Classes="dim" TextWrapping="Wrap" FontSize="12.5"
+                                       Text="The people you share with can see your IP address, as with any direct connection. Only download what you have the right to." />
                         </StackPanel>
                     </Border>
 

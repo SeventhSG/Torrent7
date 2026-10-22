@@ -9,7 +9,7 @@
         Width="720" Height="600" MinWidth="560" MinHeight="420"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
         <!-- What it is -->
         <StackPanel Grid.Row="0" Margin="24,20,24,0" Spacing="4">
             <TextBlock Classes="title" FontSize="17" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
@@ -33,7 +33,21 @@
         </Border>
 
         <!-- The files, or the wait for them -->
-        <Panel Grid.Row="2" Margin="24,0,24,0">
+        <!-- A warning when the torrent carries programs -->
+        <Border Grid.Row="2" Margin="24,0,24,12" Padding="12,9" CornerRadius="{StaticResource ControlRadius}"
+                Background="{StaticResource AccentSoftBrush}" Classes.severe="{Binding RiskSevere}"
+                IsVisible="{Binding RiskText, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Border.Styles>
+                <Style Selector="Border.severe"><Setter Property="Background" Value="{StaticResource DangerSoftBrush}" /></Style>
+            </Border.Styles>
+            <Grid ColumnDefinitions="Auto,*">
+                <c:StrokeIcon Data="{StaticResource IconAlert}" Width="15" Height="15" VerticalAlignment="Top" Margin="0,1,10,0"
+                              Foreground="{StaticResource AccentBrush}" Classes.danger="{Binding RiskSevere}" />
+                <TextBlock Grid.Column="1" Text="{Binding RiskText}" TextWrapping="Wrap" FontSize="12.5" />
+            </Grid>
+        </Border>
+
+        <Panel Grid.Row="3" Margin="24,0,24,0">
             <Border Classes="panel" IsVisible="{Binding !IsFetching}" ClipToBounds="True">
                 <Grid RowDefinitions="Auto,*">
                     <Grid ColumnDefinitions="*,Auto" Margin="12,6,6,6">
@@ -93,7 +107,7 @@
         </Panel>
 
         <!-- How it starts -->
-        <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="24,14,24,20">
+        <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="24,14,24,20">
             <CheckBox IsChecked="{Binding Start}" Content="Start right away" />
             <CheckBox Grid.Column="1" IsChecked="{Binding Sequential}" Content="Download in order" Margin="20,0,0,0"
                       ToolTip.Tip="Front to back, so video can play before it finishes. Slower when there are few seeds." />

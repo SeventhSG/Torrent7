@@ -62,6 +62,9 @@ public sealed class TorrentEntry
 
     public string? ErrorText { get; internal set; }
 
+    /// <summary>True while the virus scan of the finished download runs.</summary>
+    public bool Scanning { get; set; }
+
     public EntryStatus Status
     {
         get

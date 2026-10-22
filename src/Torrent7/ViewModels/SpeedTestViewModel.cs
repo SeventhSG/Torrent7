@@ -34,6 +34,32 @@ public sealed partial class SpeedTestViewModel(TorrentService service, HttpClien
     [ObservableProperty] private bool upActive;
 
     public SpeedHistory Live { get; private set; } = new(80);
+
+    // The readings arrive five times a second; the numbers on screen ease toward them every
+    // frame, so they count up and settle instead of jumping.
+    private readonly Avalonia.Threading.DispatcherTimer glide = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private double downTarget, upTarget, downShown, upShown;
+    private bool downLive, upLive;
+
+    private bool glideHooked;
+
+    private void StartGlide()
+    {
+        if (!glideHooked)
+        {
+            glideHooked = true;
+            glide.Tick += (_, _) =>
+            {
+                // Nothing live: stop, so an idle page costs nothing.
+                if (!downLive && !upLive) { glide.Stop(); return; }
+                downShown += (downTarget - downShown) * 0.12;
+                upShown += (upTarget - upShown) * 0.12;
+                if (downLive) DownValue = Mbps((long)downShown);
+                if (upLive) UpValue = Mbps((long)upShown);
+            };
+        }
+        glide.Start();
+    }
     public ObservableCollection<SpeedTestRow> History { get; } = [];
     public bool HasHistory => History.Count > 0;
     public bool ShowGraphHint => !IsRunning && Live.Count == 0;
@@ -97,6 +123,9 @@ public sealed partial class SpeedTestViewModel(TorrentService service, HttpClien
         Live = new SpeedHistory(80); // download fills the left half, upload the right
         OnPropertyChanged(nameof(Live));
         cts = new CancellationTokenSource();
+        downTarget = upTarget = downShown = upShown = 0;
+        downLive = upLive = false;
+        StartGlide();
 
         var progress = new Progress<SpeedTestProgress>(p =>
         {
@@ -111,13 +140,16 @@ public sealed partial class SpeedTestViewModel(TorrentService service, HttpClien
                     break;
                 case SpeedTestPhase.Download:
                     PhaseText = "Measuring download";
-                    DownValue = Mbps(p.CurrentBps);
+                    downLive = true;
+                    downTarget = p.CurrentBps;
                     Live.Add(p.CurrentBps / 8, 0);
                     HistoryVersion++;
                     break;
                 case SpeedTestPhase.Upload:
                     PhaseText = "Measuring upload";
-                    UpValue = Mbps(p.CurrentBps);
+                    downLive = false;
+                    upLive = true;
+                    upTarget = p.CurrentBps;
                     Live.Add(0, p.CurrentBps / 8);
                     HistoryVersion++;
                     break;
@@ -128,6 +160,7 @@ public sealed partial class SpeedTestViewModel(TorrentService service, HttpClien
         {
             await service.SuspendTrafficAsync(true);
             var r = await new SpeedTest(http).RunAsync(progress, cts.Token);
+            downLive = upLive = false;
             Show(r);
             JitterText = $"{r.JitterMs:0.0} ms jitter";
             PhaseText = $"Measured {DateTime.Now:HH:mm}.";
@@ -152,6 +185,7 @@ public sealed partial class SpeedTestViewModel(TorrentService service, HttpClien
         finally
         {
             await service.SuspendTrafficAsync(false);
+            downLive = upLive = false;
             PhaseProgress = 0;
             DownActive = UpActive = false;
             IsRunning = false;
