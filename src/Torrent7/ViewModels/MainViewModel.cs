@@ -97,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string totalsText = "";
     [ObservableProperty] private int countAll;
 
+    [ObservableProperty] private string? updateText;
     [ObservableProperty] private string? clipboardOffer;
     [ObservableProperty] private string clipboardOfferText = "";
 
@@ -431,6 +432,19 @@ public sealed partial class MainViewModel : ObservableObject
         if (ClipboardOffer != null) dismissedClipboard.Add(ClipboardOffer);
         ClipboardOffer = null;
     }
+
+    // ------------------------------------------------------------------ updates
+
+    public async Task CheckForUpdateAsync()
+    {
+        var current = typeof(MainViewModel).Assembly.GetName().Version ?? new Version(0, 0);
+        if (await UpdateCheck.NewerAsync(http, new Version(current.Major, current.Minor, current.Build)) is { } v)
+            UpdateText = $"Update to {v} available";
+    }
+
+    /// <summary>Opens the release page; the installer there updates this copy in place.</summary>
+    [RelayCommand]
+    private Task OpenUpdateAsync() => Shell.OpenUrlAsync(UpdateCheck.ReleasesPage);
 
     // ------------------------------------------------------------------ virus scan
 

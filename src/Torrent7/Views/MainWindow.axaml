@@ -425,6 +425,13 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+                    <Button Classes="tool" Height="22" Padding="8,0" Command="{Binding OpenUpdateCommand}"
+                            IsVisible="{Binding UpdateText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <c:StrokeIcon Data="{StaticResource IconDownload}" Width="13" Height="13" Foreground="{StaticResource AccentBrush}" />
+                            <TextBlock Classes="accent" FontSize="12" Text="{Binding UpdateText}" />
+                        </StackPanel>
+                    </Button>
                     <TextBlock Classes="caption num" Text="{Binding TotalsText}" />
                     <TextBlock Classes="caption num" Text="{Binding FreeText}" />
                 </StackPanel>

@@ -25,8 +25,8 @@ Free. Open source. One file, nothing to install. Opens in about a second.
 
 ## Get started in a minute
 
-1. **Download** the file for your system from [Releases](https://github.com/SeventhSG/Torrent7/releases/latest) and unpack it.
-2. **Run Torrent7.** On Windows that is `Torrent7.exe`; on Linux, `./Torrent7`.
+1. **Windows:** download `Torrent7-Setup-x.y.z.exe` from [Releases](https://github.com/SeventhSG/Torrent7/releases/latest) and run it. Prefer no installer? The `win-x64.zip` holds the same app as a single exe.
+2. **Linux:** see [Install on Linux](#install-on-linux) below.
 3. **Press Ctrl+V** with a magnet link copied, drop a `.torrent` file anywhere on the window, or use **Add**.
 4. Pick where it goes and which files you want, then press **Add**.
 
@@ -44,6 +44,26 @@ Free. Open source. One file, nothing to install. Opens in about a second.
 
 Want it to open magnet links from your browser? **Settings, This computer, Open magnet links and
 .torrent files with Torrent7.** It only writes to your own user account and never runs on its own.
+
+### Updating
+
+Torrent7 checks GitHub for a new version when it starts. When there is one, an **Update** button
+appears in the status bar; it opens the release page. Run the new setup over the old one: it says
+it is updating, and keeps your torrents and settings.
+
+### Install on Linux
+
+```bash
+# Pick linux-x64, or linux-arm64 for a Raspberry Pi or other ARM machine.
+curl -LO https://github.com/SeventhSG/Torrent7/releases/latest/download/Torrent7-0.2.0-linux-x64.tar.gz
+mkdir -p ~/.local/opt/torrent7
+tar -xzf Torrent7-*-linux-x64.tar.gz -C ~/.local/opt/torrent7
+~/.local/opt/torrent7/Torrent7
+```
+
+Then open **Settings, This computer, Add to applications menu**: Torrent7 shows up in your app menu
+and opens magnet links from your browser. To update, extract the new version over the same folder.
+For virus scans of finished downloads, install ClamAV (`sudo apt install clamav` on Debian and Ubuntu).
 
 ### Requirements
 

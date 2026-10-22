@@ -53,8 +53,29 @@ jobs:
           name: torrent7-${{ github.sha }}
           path: dist/*
 
+  installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish and build the setup
+        shell: pwsh
+        run: |
+          $v = ([xml](Get-Content src/Torrent7/Torrent7.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          dotnet publish src/Torrent7/Torrent7.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish/win-x64
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" installer/Torrent7.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: torrent7-setup
+          path: dist/*.exe
+
   release:
-    needs: build
+    needs: [build, installer]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -63,6 +84,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: torrent7-${{ github.sha }}
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: torrent7-setup
           path: dist
 
       - uses: softprops/action-gh-release@v2

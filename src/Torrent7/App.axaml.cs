@@ -63,6 +63,7 @@ public sealed class App : Application
         var vm = new MainViewModel(service, http, window);
         window.Attach(vm, () => service.Settings.CloseToTray && !quitting, Quit);
         _ = TrackerBoost.RefreshAsync(http);
+        _ = vm.CheckForUpdateAsync();
 
         foreach (var arg in Program.StartupArgs) await vm.AddSourceAsync(arg);
         Program.ArgumentReceived = arg => Dispatcher.UIThread.Post(async () =>

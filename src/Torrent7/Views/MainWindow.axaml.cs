@@ -482,6 +482,12 @@ public sealed partial class MainWindow : Window, IShell
         if (!ok) Notify("Could not open it", path, error: true);
     }
 
+    public async Task OpenUrlAsync(string url)
+    {
+        try { await Launcher.LaunchUriAsync(new Uri(url)); }
+        catch (Exception ex) { Log.Warn("open url: " + ex.Message); }
+    }
+
     public async Task CopyAsync(string text)
     {
         if (Clipboard != null) await Clipboard.SetTextAsync(text);

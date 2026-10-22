@@ -12,6 +12,7 @@ public interface IShell
     Task<string?> ShowAddLinkAsync(string? suggestion);
     Task<string?> GetClipboardTextAsync();
     Task OpenAsync(string path);
+    Task OpenUrlAsync(string url);
     Task CopyAsync(string text);
     void Notify(string title, string message, bool error = false);
     void BringToFront();
