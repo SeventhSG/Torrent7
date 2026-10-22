@@ -25,6 +25,29 @@ jobs:
       - name: Build and package
         run: bash build/build.sh --skip-tests
 
+      # Starts the real Linux build on a virtual display: it must open its window, start the
+      # engine and keep running. The screenshot is kept so the window can be checked by eye.
+      - name: Linux smoke test
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb imagemagick libice6 libsm6 libfontconfig1 > /dev/null
+          cd publish/linux-x64
+          touch portable
+          xvfb-run -a -s "-screen 0 1280x800x24" bash -c '
+            ./Torrent7 > run.txt 2>&1 &
+            pid=$!
+            sleep 20
+            import -window root ../../linux-smoke.png
+            if kill -0 $pid 2>/dev/null; then echo "still running after 20 s"; kill $pid; else echo "exited early"; cat run.txt; exit 1; fi'
+          cat Torrent7-data/torrent7.log
+          grep -q "started, 0 torrents" Torrent7-data/torrent7.log
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-smoke
+          path: linux-smoke.png
+
       - uses: actions/upload-artifact@v4
         with:
           name: torrent7-${{ github.sha }}
