@@ -7,8 +7,10 @@ public interface IShell
 {
     Task<IReadOnlyList<string>> PickTorrentFilesAsync();
     Task<string?> PickFolderAsync(string? start);
-    Task<(bool Ok, bool DeleteFiles)> ConfirmRemoveAsync(string name, bool canDeleteFiles);
+    Task<(bool Ok, bool DeleteFiles)> ConfirmRemoveAsync(string what, int count, bool canDeleteFiles);
     Task<AddRequest?> ShowAddDialogAsync(AddTorrentViewModel vm);
+    Task<string?> ShowAddLinkAsync(string? suggestion);
+    Task<string?> GetClipboardTextAsync();
     Task OpenAsync(string path);
     Task CopyAsync(string text);
     void Notify(string title, string message, bool error = false);

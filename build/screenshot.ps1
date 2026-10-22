@@ -9,7 +9,9 @@
 
 param(
     [string]$Out = 'assets\app.png',
-    [string]$Title = ''
+    [string]$Title = '',
+    # Copy the window's rectangle from the screen instead, which also catches open menus.
+    [switch]$Screen
 )
 
 Add-Type -AssemblyName System.Drawing
@@ -67,6 +69,15 @@ $h = $rect.Bottom - $rect.Top
 
 $bmp = New-Object System.Drawing.Bitmap($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $g = [System.Drawing.Graphics]::FromImage($bmp)
+if ($Screen) {
+    $g.CopyFromScreen($rect.Left, $rect.Top, 0, 0, $bmp.Size)
+    $g.Dispose()
+    New-Item -ItemType Directory -Force (Split-Path $outPath) | Out-Null
+    $bmp.Save($outPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bmp.Dispose()
+    Write-Output "shot -> $outPath ($w x $h, from screen)"
+    return
+}
 $hdc = $g.GetHdc()
 # PW_RENDERFULLCONTENT, required for GPU composed surfaces.
 $ok = [Shot]::PrintWindow($handle, $hdc, 2)

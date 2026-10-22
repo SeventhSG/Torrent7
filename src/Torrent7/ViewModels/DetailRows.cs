@@ -24,12 +24,18 @@ public sealed partial class FileRowViewModel : ObservableObject
 
     public ITorrentManagerFile File { get; }
     public string Path { get; }
+    public long Length => File.Length;
     public string SizeText { get; }
 
     [ObservableProperty] private bool include;
     [ObservableProperty] private int priorityIndex;
     [ObservableProperty] private double progress;
     [ObservableProperty] private string progressText = "";
+
+    /// <summary>A skipped file's meter fades back, so the wanted ones stand out.</summary>
+    public double MeterOpacity => Include ? 1 : 0.35;
+
+    partial void OnIncludeChanged(bool oldValue, bool newValue) => OnPropertyChanged(nameof(MeterOpacity));
 
     public static IReadOnlyList<string> PriorityNames { get; } = ["Low", "Normal", "High"];
 
@@ -79,7 +85,7 @@ internal static class DetailReaders
         var have = pieceCount > 0 && p.BitField.Length > 0 ? Format.Percent(100.0 * p.BitField.TrueCount / p.BitField.Length) : "";
         return new PeerRow(
             p.Uri.Host + ":" + p.Uri.Port,
-            p.ClientApp.Client.ToString() is var c && c != "Unknown" ? c : p.ClientApp.ShortId ?? "",
+            PeerClients.Name(p.PeerID.Span, p.ClientApp.Client.ToString()),
             Format.Speed(p.Monitor.DownloadRate),
             Format.Speed(p.Monitor.UploadRate),
             have,

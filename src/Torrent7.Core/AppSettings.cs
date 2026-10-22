@@ -53,6 +53,9 @@ public sealed class AppSettings
     public long MeasuredDownBps { get; set; }
     public long MeasuredUpBps { get; set; }
 
+    /// <summary>The last few speed test results, newest first.</summary>
+    public List<SpeedTestEntry> SpeedTests { get; set; } = [];
+
     public static AppSettings Load()
     {
         try
@@ -98,4 +101,12 @@ public sealed class AppSettings
         SeedRatioLimit = Math.Max(0, SeedRatioLimit);
         return this;
     }
+}
+
+public sealed class SpeedTestEntry
+{
+    public DateTime WhenUtc { get; set; }
+    public long DownBps { get; set; }
+    public long UpBps { get; set; }
+    public double LatencyMs { get; set; }
 }

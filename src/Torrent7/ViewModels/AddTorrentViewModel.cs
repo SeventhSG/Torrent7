@@ -61,6 +61,7 @@ public sealed partial class AddTorrentViewModel : ObservableObject
     [ObservableProperty] private bool spaceShort;
     [ObservableProperty] private bool isPrivate;
     [ObservableProperty] private bool hasFiles;
+    [ObservableProperty] private bool noFileList = true;
 
     /// <summary>Set by the window when the user confirms; read back by the caller.</summary>
     public AddRequest? Result { get; private set; }
@@ -101,6 +102,7 @@ public sealed partial class AddTorrentViewModel : ObservableObject
         foreach (var f in torrent.Files.OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase))
             Files.Add(new FileChoice(f.Path, f.Length, UpdateSummary));
         HasFiles = Files.Count > 1;
+        NoFileList = Files.Count == 0;
     }
 
     private void UpdateSummary()

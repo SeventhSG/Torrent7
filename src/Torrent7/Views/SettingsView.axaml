@@ -6,203 +6,362 @@
              x:DataType="vm:SettingsViewModel">
 
     <UserControl.Styles>
-        <!-- Every row: label on the left at a fixed width, control on the right. -->
+        <!-- One setting: what it is on the left, the control on the right. -->
         <Style Selector="Grid.row">
-            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="Margin" Value="18,12" />
+            <Setter Property="MinHeight" Value="34" />
         </Style>
-        <Style Selector="Grid.row > TextBlock.key">
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Margin" Value="0,7,16,0" />
+        <Style Selector="Grid.row > StackPanel.label">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,24,0" />
+            <Setter Property="Spacing" Value="2" />
         </Style>
-        <Style Selector="TextBlock.section">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,22,0,6" />
-        </Style>
-        <Style Selector="TextBlock.hint">
+        <Style Selector="Grid.row > StackPanel.label > TextBlock.hint">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="Grid.row > :is(Control):nth-child(2)">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{StaticResource PanelRadius}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="Border.card Border.hairline">
+            <Setter Property="Margin" Value="18,0" />
+        </Style>
+        <Style Selector="TextBlock.group">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="2,18,0,10" />
+        </Style>
+        <Style Selector="TextBlock.unit">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="Margin" Value="0,0,10,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="*,Auto">
-        <ScrollViewer Grid.Row="0">
-            <StackPanel Margin="32,8,32,24" MaxWidth="884" HorizontalAlignment="Left">
-                <TextBlock Classes="h1" Text="Settings" />
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="200,*">
 
-                <TextBlock Classes="section" Text="Downloads" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Save new downloads in" />
-                    <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
-                        <TextBox Text="{Binding DownloadDir}" />
-                        <Button Grid.Column="1" Margin="6,0,0,0" Content="Browse" Command="{Binding BrowseDownloadDirCommand}" />
-                    </Grid>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="When adding a torrent" />
-                    <StackPanel Grid.Column="1">
-                        <CheckBox IsChecked="{Binding Edit.ShowAddDialog}" Content="Ask where to save it and which files to get" />
-                        <CheckBox IsChecked="{Binding Edit.StartImmediately}" Content="Start downloading right away" />
+        <!-- Section index -->
+        <StackPanel Grid.Column="0" Margin="20,20,8,0" Spacing="2">
+            <TextBlock Classes="title" Text="Settings" Margin="10,0,0,14" />
+            <ListBox x:Name="Sections" Classes="nav">
+                <ListBoxItem Tag="Downloads">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconFolderDown}" Width="16" Height="16" />
+                        <TextBlock Text="Downloads" VerticalAlignment="Center" />
                     </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Downloads running at once" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding MaxActive}" Minimum="1" Maximum="100" />
-                        <TextBlock Classes="hint" Text="The rest wait in the queue. Fewer at once finish sooner." MaxWidth="300" />
+                </ListBoxItem>
+                <ListBoxItem Tag="Speed">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconGauge}" Width="16" Height="16" />
+                        <TextBlock Text="Speed" VerticalAlignment="Center" />
                     </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Watch folder" />
-                    <Grid Grid.Column="1" ColumnDefinitions="*,Auto,Auto">
-                        <TextBox Text="{Binding WatchFolder}" Watermark=".torrent files saved here are added on their own" />
-                        <Button Grid.Column="1" Margin="6,0,0,0" Content="Browse" Command="{Binding BrowseWatchFolderCommand}" />
-                        <Button Grid.Column="2" Margin="6,0,0,0" Classes="ghost" Content="Clear" Command="{Binding ClearWatchFolderCommand}" />
-                    </Grid>
-                </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="Connection">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconPlug}" Width="16" Height="16" />
+                        <TextBlock Text="Connection" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Seeding">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconCircleUp}" Width="16" Height="16" />
+                        <TextBlock Text="Seeding" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Behaviour">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconSliders}" Width="16" Height="16" />
+                        <TextBlock Text="Behaviour" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="System">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <c:StrokeIcon Classes="navicon" Data="{StaticResource IconInfo}" Width="16" Height="16" />
+                        <TextBlock Text="This computer" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+            </ListBox>
+        </StackPanel>
 
-                <TextBlock Classes="section" Text="Speed" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Download limit, KiB/s" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding DownloadLimit}" Minimum="0" Maximum="10000000" Increment="512" />
-                        <TextBlock Classes="hint" Text="0 means no limit" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Upload limit, KiB/s" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding UploadLimit}" Minimum="0" Maximum="10000000" Increment="64" />
-                        <TextBlock Classes="hint" Text="The speed test can pick this for you" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Slow mode download, KiB/s" />
-                    <NumericUpDown Grid.Column="1" Value="{Binding SlowDownloadLimit}" Minimum="0" Maximum="10000000" Increment="256" />
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Slow mode upload, KiB/s" />
-                    <NumericUpDown Grid.Column="1" Value="{Binding SlowUploadLimit}" Minimum="0" Maximum="10000000" Increment="64" />
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Slow mode schedule" />
-                    <StackPanel Grid.Column="1" Spacing="6">
-                        <CheckBox IsChecked="{Binding Edit.ScheduleEnabled}" Content="Switch to slow mode every day" />
-                        <StackPanel Orientation="Horizontal" Spacing="8" IsEnabled="{Binding Edit.ScheduleEnabled}">
-                            <TextBlock Classes="hint" Text="from" />
-                            <TextBox Text="{Binding ScheduleFrom}" Width="72" HorizontalContentAlignment="Center" />
-                            <TextBlock Classes="hint" Text="to" />
-                            <TextBox Text="{Binding ScheduleTo}" Width="72" HorizontalContentAlignment="Center" />
-                            <TextBlock Classes="hint" Text="24 hour clock. A window past midnight works too." />
+        <ScrollViewer Grid.Column="1" x:Name="Scroller">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="760" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Margin="12,46,28,24">
+
+                    <TextBlock x:Name="Downloads" Classes="group" Text="Downloads" Margin="2,0,0,10" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Save new downloads in" />
+                                    <TextBlock Classes="hint" Text="{Binding DownloadDir}" TextTrimming="LeadingCharacterEllipsis" TextWrapping="NoWrap" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Change..." Command="{Binding BrowseDownloadDirCommand}" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Ask before adding" />
+                                    <TextBlock Classes="hint" Text="Choose where it goes and which files to get, every time." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowAddDialog}" Margin="0,0,-10,0" AutomationProperties.Name="Ask before adding" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Start right away" />
+                                    <TextBlock Classes="hint" Text="Otherwise new torrents wait, paused." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding StartImmediately}" Margin="0,0,-10,0" AutomationProperties.Name="Start right away" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Downloads at the same time" />
+                                    <TextBlock Classes="hint" Text="The rest wait in line. Fewer at once means each finishes sooner." />
+                                </StackPanel>
+                                <NumericUpDown Grid.Column="1" Value="{Binding MaxActive}" Minimum="1" Maximum="100" Width="90" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Watch folder" />
+                                    <TextBlock Classes="hint" Text="{Binding WatchFolder, TargetNullValue='Off. .torrent files saved into a folder you pick get added by themselves.'}"
+                                               TextTrimming="LeadingCharacterEllipsis" TextWrapping="NoWrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Classes="tool" Content="Turn off" Command="{Binding ClearWatchFolderCommand}"
+                                            IsVisible="{Binding WatchFolder, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                    <Button Content="Choose..." Command="{Binding BrowseWatchFolderCommand}" />
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
-                    </StackPanel>
-                </Grid>
+                    </Border>
 
-                <TextBlock Classes="section" Text="Connection" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Listening port" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                        <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" />
-                        <Button Classes="ghost" Content="Pick another" Command="{Binding NewPortCommand}" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Finding peers" />
-                    <StackPanel Grid.Column="1">
-                        <CheckBox IsChecked="{Binding Edit.PortForwarding}" Content="Open the port on the router automatically (UPnP and NAT-PMP)" />
-                        <CheckBox IsChecked="{Binding Edit.Dht}" Content="Use DHT, which finds peers without a tracker" />
-                        <CheckBox IsChecked="{Binding Edit.LocalPeerDiscovery}" Content="Look for peers on the local network" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Encryption" />
-                    <ComboBox Grid.Column="1" Width="240" ItemsSource="{x:Static vm:SettingsViewModel.EncryptionNames}" SelectedIndex="{Binding EncryptionIndex}" />
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Connections in total" />
-                    <NumericUpDown Grid.Column="1" Value="{Binding MaxConnections}" Minimum="20" Maximum="4000" Increment="50" />
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Connections per torrent" />
-                    <NumericUpDown Grid.Column="1" Value="{Binding PerTorrent}" Minimum="5" Maximum="4000" Increment="10" />
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Connections opening at once" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding HalfOpen}" Minimum="4" Maximum="500" Increment="8" />
-                        <TextBlock Classes="hint" Text="Higher finds peers faster. Some home routers struggle above 100." MaxWidth="300" />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock Classes="section" Text="Seeding" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Stop seeding at ratio" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding SeedRatio}" Minimum="0" Maximum="100" Increment="0.5" FormatString="0.0" />
-                        <TextBlock Classes="hint" Text="0 keeps seeding. Uploaded divided by downloaded." />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock Classes="section" Text="Extras" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Tracker boost" />
-                    <StackPanel Grid.Column="1" Spacing="2">
-                        <CheckBox IsChecked="{Binding Edit.TrackerBoost}" Content="Add well known public trackers to public torrents" />
-                        <TextBlock Classes="hint" Text="More trackers, more peers, faster starts. Private torrents are never touched." />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Convenience" />
-                    <StackPanel Grid.Column="1">
-                        <CheckBox IsChecked="{Binding Edit.WatchClipboard}" Content="Offer magnet links I copy when I switch to Torrent7" />
-                        <CheckBox IsChecked="{Binding Edit.NotifyOnComplete}" Content="Tell me when a download finishes" />
-                        <CheckBox IsChecked="{Binding Edit.CloseToTray}" Content="Keep running in the tray when the window closes" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Disk cache, MiB" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <NumericUpDown Value="{Binding DiskCache}" Minimum="0" Maximum="1024" Increment="16" />
-                        <TextBlock Classes="hint" Text="Batches writes in memory. Helps fast lines on slow disks." MaxWidth="300" />
-                    </StackPanel>
-                </Grid>
-
-                <TextBlock Classes="section" Text="This computer" />
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Links and files" />
-                    <StackPanel Grid.Column="1" Spacing="4">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Button Content="{Binding IntegrationLabel}" Command="{Binding RegisterHandlersCommand}" />
-                            <Button Classes="ghost" Content="Remove" Command="{Binding UnregisterHandlersCommand}"
-                                    ToolTip.Tip="Undo it: links and files go back to whatever opened them before" />
+                    <TextBlock x:Name="Speed" Classes="group" Text="Speed" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Download limit" />
+                                    <TextBlock Classes="hint" Text="0 for no limit." />
+                                </StackPanel>
+                                <NumericUpDown Grid.Column="1" Value="{Binding DownloadLimit}" Minimum="0" Maximum="10000000">
+                                    <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="KiB/s" /></NumericUpDown.InnerRightContent>
+                                </NumericUpDown>
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Upload limit" />
+                                    <TextBlock Classes="hint" Text="The speed test can pick the one that keeps downloads fast." />
+                                </StackPanel>
+                                <NumericUpDown Grid.Column="1" Value="{Binding UploadLimit}" Minimum="0" Maximum="10000000">
+                                    <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="KiB/s" /></NumericUpDown.InnerRightContent>
+                                </NumericUpDown>
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Slow mode limits" />
+                                    <TextBlock Classes="hint" Text="Used while slow mode is on, from the sidebar or the schedule below." />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                    <NumericUpDown Value="{Binding SlowDownloadLimit}" Minimum="0" Maximum="10000000" Width="118" ToolTip.Tip="Download">
+                                        <NumericUpDown.InnerLeftContent><c:StrokeIcon Data="{StaticResource IconDown}" Width="12" Height="12" Margin="10,0,0,0" Foreground="{StaticResource TextFaintBrush}" /></NumericUpDown.InnerLeftContent>
+                                        <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="KiB/s" /></NumericUpDown.InnerRightContent>
+                                    </NumericUpDown>
+                                    <NumericUpDown Value="{Binding SlowUploadLimit}" Minimum="0" Maximum="10000000" Width="118" ToolTip.Tip="Upload">
+                                        <NumericUpDown.InnerLeftContent><c:StrokeIcon Data="{StaticResource IconUp}" Width="12" Height="12" Margin="10,0,0,0" Foreground="{StaticResource TextFaintBrush}" /></NumericUpDown.InnerLeftContent>
+                                        <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="KiB/s" /></NumericUpDown.InnerRightContent>
+                                    </NumericUpDown>
+                                </StackPanel>
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Slow mode every day" />
+                                    <TextBlock Classes="hint" Text="24 hour clock. A window past midnight works too." />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" IsEnabled="{Binding ScheduleEnabled}">
+                                        <TextBox Text="{Binding ScheduleFrom}" Width="64" HorizontalContentAlignment="Center" AutomationProperties.Name="From" />
+                                        <TextBlock Classes="caption" Text="to" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding ScheduleTo}" Width="64" HorizontalContentAlignment="Center" AutomationProperties.Name="To" />
+                                    </StackPanel>
+                                    <ToggleSwitch IsChecked="{Binding ScheduleEnabled}" Margin="6,0,-10,0" AutomationProperties.Name="Slow mode every day" />
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
-                        <TextBlock Classes="hint" Text="{Binding IntegrationStatus}" />
-                    </StackPanel>
-                </Grid>
-                <Grid Classes="row" ColumnDefinitions="240,*">
-                    <TextBlock Classes="key" Text="Torrent7's own files" />
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                        <TextBlock Classes="hint" Text="{Binding DataDirText}" MaxWidth="420" />
-                        <Button Classes="ghost" Content="Open" Command="{Binding OpenDataFolderCommand}" />
-                    </StackPanel>
-                </Grid>
-                <TextBlock Classes="hint" Margin="0,8,0,0"
-                           Text="Put an empty file named portable next to Torrent7 to keep everything in a folder beside it instead." />
-            </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="Connection" Classes="group" Text="Connection" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Listening port" />
+                                    <TextBlock Classes="hint" Text="Where other peers reach you." />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Classes="tool" Content="Random" Command="{Binding NewPortCommand}" />
+                                    <NumericUpDown Value="{Binding Port}" Minimum="1024" Maximum="65535" Width="96" FormatString="0" />
+                                </StackPanel>
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Open the port on the router" />
+                                    <TextBlock Classes="hint" Text="UPnP and NAT-PMP. Lets more peers connect to you, which is faster." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding PortForwarding}" Margin="0,0,-10,0" AutomationProperties.Name="Open the port on the router" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="DHT" />
+                                    <TextBlock Classes="hint" Text="Finds peers without a tracker. Needed for most magnet links." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding Dht}" Margin="0,0,-10,0" AutomationProperties.Name="DHT" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Local network peers" />
+                                    <TextBlock Classes="hint" Text="Finds peers on your own network, which are the fastest of all." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding LocalPeerDiscovery}" Margin="0,0,-10,0" AutomationProperties.Name="Local network peers" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Encryption" />
+                                    <TextBlock Classes="hint" Text="Encrypted connections get past providers that slow torrents down." />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Width="230" ItemsSource="{x:Static vm:SettingsViewModel.EncryptionNames}" SelectedIndex="{Binding EncryptionIndex}" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Peers" />
+                                    <TextBlock Classes="hint" Text="In total, per torrent, and how many to open at once. The speed test can size these." />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <NumericUpDown Value="{Binding MaxConnections}" Minimum="20" Maximum="4000" Width="86" ToolTip.Tip="In total" />
+                                    <NumericUpDown Value="{Binding PerTorrent}" Minimum="5" Maximum="4000" Width="78" ToolTip.Tip="Per torrent" />
+                                    <NumericUpDown Value="{Binding HalfOpen}" Minimum="4" Maximum="500" Width="70" ToolTip.Tip="Opening at once" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="Seeding" Classes="group" Text="Seeding" />
+                    <Border Classes="card">
+                        <Grid Classes="row" ColumnDefinitions="*,Auto">
+                            <StackPanel Classes="label">
+                                <TextBlock Text="Stop seeding at ratio" />
+                                <TextBlock Classes="hint" Text="Uploaded divided by downloaded. 0 keeps seeding until you stop it." />
+                            </StackPanel>
+                            <NumericUpDown Grid.Column="1" Value="{Binding SeedRatio}" Minimum="0" Maximum="100" Increment="0.5" FormatString="0.0" Width="90" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock x:Name="Behaviour" Classes="group" Text="Behaviour" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Tracker boost" />
+                                    <TextBlock Classes="hint" Text="Adds well known public trackers to public torrents for more peers. Private torrents are never touched." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding TrackerBoost}" Margin="0,0,-10,0" AutomationProperties.Name="Tracker boost" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Offer copied magnet links" />
+                                    <TextBlock Classes="hint" Text="When you switch to Torrent7 with a magnet link on the clipboard." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding WatchClipboard}" Margin="0,0,-10,0" AutomationProperties.Name="Offer copied magnet links" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Tell me when a download finishes" />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding NotifyOnComplete}" Margin="0,0,-10,0" AutomationProperties.Name="Tell me when a download finishes" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Keep running in the tray" />
+                                    <TextBlock Classes="hint" Text="Closing the window keeps transfers going. Quit from the tray icon." />
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray}" Margin="0,0,-10,0" AutomationProperties.Name="Keep running in the tray" />
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Disk cache" />
+                                    <TextBlock Classes="hint" Text="Batches writes in memory, for fast lines on slow disks." />
+                                </StackPanel>
+                                <NumericUpDown Grid.Column="1" Value="{Binding DiskCache}" Minimum="0" Maximum="1024" Width="104">
+                                    <NumericUpDown.InnerRightContent><TextBlock Classes="unit" Text="MiB" /></NumericUpDown.InnerRightContent>
+                                </NumericUpDown>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="System" Classes="group" Text="This computer" />
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Open magnet links and .torrent files" />
+                                    <TextBlock Classes="hint" Text="{Binding IntegrationHint}" />
+                                    <TextBlock Classes="hint" Text="{Binding IntegrationStatus}" Foreground="{StaticResource TextDimBrush}"
+                                               IsVisible="{Binding IntegrationStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                    <Button Classes="tool" Content="Undo" Command="{Binding UnregisterHandlersCommand}"
+                                            ToolTip.Tip="Links and files go back to whatever opened them before" />
+                                    <Button Content="{Binding IntegrationLabel}" Command="{Binding RegisterHandlersCommand}" />
+                                </StackPanel>
+                            </Grid>
+                            <Border Classes="hairline" />
+                            <Grid Classes="row" ColumnDefinitions="*,Auto">
+                                <StackPanel Classes="label">
+                                    <TextBlock Text="Torrent7's own files" />
+                                    <TextBlock Classes="hint" Text="{Binding DataDirText}" TextTrimming="LeadingCharacterEllipsis" TextWrapping="NoWrap" />
+                                    <TextBlock Classes="hint" Text="An empty file named portable next to Torrent7 keeps everything beside it instead." />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Open folder" Command="{Binding OpenDataFolderCommand}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
         </ScrollViewer>
 
-        <Border Grid.Row="1" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="32,10">
-            <Grid>
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="820" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+        <!-- Appears only when something changed -->
+        <Border Grid.Row="1" Grid.ColumnSpan="2" IsVisible="{Binding IsDirty}" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="20,10">
             <Grid ColumnDefinitions="*,Auto,Auto">
-                <TextBlock Grid.Column="0" Classes="danger" Text="{Binding Error}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
-                <Button Grid.Column="1" Classes="ghost" Content="Undo changes" Command="{Binding RevertCommand}" Margin="0,0,8,0" />
-                <Button Grid.Column="2" Classes="accent" Content="Save" Command="{Binding SaveCommand}" Padding="24,6" />
-            </Grid>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="You have unsaved changes." Classes="dim" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNull}}" />
+                    <TextBlock Classes="danger" Text="{Binding Error}" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="tool" Content="Discard" Command="{Binding RevertCommand}" Margin="0,0,8,0" />
+                <Button Grid.Column="2" Classes="accent" Content="Save changes" Command="{Binding SaveCommand}" Padding="18,0" />
             </Grid>
         </Border>
     </Grid>

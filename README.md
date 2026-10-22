@@ -15,20 +15,32 @@
 
 ## [Download Torrent7](https://github.com/SeventhSG/Torrent7/releases/latest)
 
-Free. Open source. One file, nothing to install.
+Free. Open source. One file, nothing to install. Opens in about a second.
 
 </div>
 
 ---
 
-<img src="assets/app.png" alt="Torrent7 seeding a torrent, with its trackers open below the list" width="100%">
+<img src="assets/app.png" alt="Torrent7: the sidebar of transfer views, the torrent table, and the files of the selected torrent below it" width="100%">
 
 ## Get started in a minute
 
 1. **Download** the file for your system from [Releases](https://github.com/SeventhSG/Torrent7/releases/latest) and unpack it.
 2. **Run Torrent7.** On Windows that is `Torrent7.exe`; on Linux, `./Torrent7`.
-3. **Paste a magnet link** into the box at the top and press Enter, or drop a `.torrent` file anywhere on the window.
+3. **Press Ctrl+V** with a magnet link copied, drop a `.torrent` file anywhere on the window, or use **Add**.
 4. Pick where it goes and which files you want, then press **Add**.
+
+### Keyboard
+
+| Keys | Does |
+| --- | --- |
+| Ctrl+V | Add whatever magnet links or torrent links are on the clipboard |
+| Ctrl+O | Open .torrent files |
+| Ctrl+L | Add a magnet link or web link |
+| Space | Pause or resume the selected torrents |
+| Delete | Remove the selected torrents (asks first) |
+| Ctrl+Enter | Open the folder of the selected torrent |
+| Ctrl+F | Search; Esc clears it |
 
 Want it to open magnet links from your browser? **Settings, This computer, Open magnet links and
 .torrent files with Torrent7.** It only writes to your own user account and never runs on its own.
@@ -52,6 +64,8 @@ Everything a torrent client should do, without the clutter:
 
 - **Any torrent:** magnet links, bare info hashes, `.torrent` files, links to `.torrent` files on the web, v1, v2 and hybrid torrents.
 - **Choose the files.** Untick what you do not want before it starts, or later from the Files tab.
+- **A real table.** Sort by any column, drag columns to reorder them, resize them, and right click a header to choose which ones show. It all sticks between runs, along with the window and the details panel.
+- **Select several and act on all of them.** Pause, resume, check, copy magnet links or remove in one go.
 - **Pause, resume, move, check again, remove.** Moving keeps going from the new place. Removing asks first, and deleting the files is a separate, red choice.
 - **Limits:** a global download and upload limit, a per torrent limit, and how many downloads run at once. The rest wait in the queue.
 - **Seeding rules:** stop at a share ratio, or keep going.
@@ -69,7 +83,9 @@ And the parts most clients leave out:
 | **Clipboard pickup** | Copy a magnet link anywhere, switch to Torrent7, and it offers to add it. |
 | **Watch folder** | `.torrent` files saved into a folder you pick are added on their own. |
 | **Not enough space?** | The add dialog tells you before you start, not after an hour. |
-| **Live speed graphs** | For the whole app and for every torrent, so you see at a glance what is moving. |
+| **Piece map** | The General tab shows which parts of a torrent are on disk, so a stalled download shows where it is stuck. |
+| **Live speed graph** | Download and upload for the last two minutes, in the sidebar. |
+| **Real client names** | The Peers tab names the program on the other end, such as qBittorrent 5.0.4 or Transmission 4.0.6, instead of a raw peer id. |
 | **Portable mode** | Put an empty file named `portable` next to Torrent7 and it keeps everything in a folder beside itself. Run it from a USB stick. |
 
 It sits in the tray when you close the window, so downloads carry on. Quit from the tray menu.
@@ -93,7 +109,7 @@ src/Torrent7.Core/   The engine side, no UI. Builds on MonoTorrent.
   SpeedTest            Latency, then six parallel streams each way for eight seconds.
   TrackerBoost         The public tracker list, and the rule that private torrents are left alone.
   TorrentInput         Recognises magnets, hashes, links and files in pasted text.
-src/Torrent7/        The Avalonia app: one window, three pages, two dialogs.
+src/Torrent7/        The Avalonia app: one window, three pages, three dialogs.
 tests/Torrent7.Tests Headless checks, plus a real download between two engines over 127.0.0.1.
 build/               build.ps1 and build.sh publish all three targets; make-assets.py draws the icons.
 ```
@@ -106,11 +122,13 @@ build/               build.ps1 and build.sh publish all three targets; make-asse
 - **More sources.** DHT, peer exchange, local peer discovery, UPnP and NAT-PMP port forwarding, web seeds, and tracker boost for public torrents.
 - **A queue.** Five downloads at full speed finish sooner than fifty at a crawl.
 
-### Why it is small
+### Why it is small, and quick to open
 
 One self-contained file per platform, trimmed at publish so code the app never calls is left
 out. Settings and the session are read with serializers generated at build time, which is
-what makes trimming safe. About 20 MB on disk.
+what makes trimming safe. The code is compiled ahead of time, so the window opens in about a
+second instead of nearly three; that doubles the download to about 30 MB, which is the right
+trade for an app you open every day.
 
 ### Where it keeps things
 

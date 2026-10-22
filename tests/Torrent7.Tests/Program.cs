@@ -216,6 +216,15 @@ Check("SpeedHistory samples oldest first", downs.SequenceEqual(new long[] { 2, 3
     $"got [{string.Join(", ", downs)}], expected [2, 3, 4]");
 Check("SpeedHistory peak", history.Peak == 4, $"got {history.Peak}, expected 4");
 
+// Peer client names from peer ids
+foreach (var (id, expected) in new[] { ("-qB4630-abcdefghijkl", "qBittorrent 4.6.3"), ("-DE220s-meia4a0U4q!o", "Deluge 2.2"),
+                                       ("-lt0F07-0123456789ab", "rTorrent 0.15.7"), ("-TR4060-0123456789ab", "Transmission 4.0.6") })
+{
+    var got = PeerClients.Name(System.Text.Encoding.ASCII.GetBytes(id), "Unknown");
+    Check($"PeerClients.Name({id[..8]})", got == expected, $"got \"{got}\", expected \"{expected}\"");
+}
+Check("PeerClients.Name of garbage is Unknown", PeerClients.Name("xyz"u8, "Unknown") == "Unknown", "garbage leaked through");
+
 // A real download over loopback, through the same service the app uses.
 try
 {

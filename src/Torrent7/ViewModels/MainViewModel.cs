@@ -7,27 +7,42 @@ using Torrent7.Core;
 namespace Torrent7.ViewModels;
 
 public enum Page { Transfers, SpeedTest, Settings }
-public enum Filter { All, Active, Seeding, Paused, Done, Errors }
+public enum Filter { All, Downloading, Seeding, Completed, Paused, Errors }
 
 /// <summary>
-/// The main window: the list, its filters, the selected torrent's details, and the bar on
-/// top. Runs off one timer that ticks the service and then refreshes what is on screen.
+/// The main window: the sidebar, the torrent table and what is selected in it, the toolbar
+/// and the status bar. One timer ticks the service and then refreshes what is on screen.
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly TorrentService service;
-    private readonly HttpClient http;
     private readonly Dictionary<string, TorrentRowViewModel> rowsById = [];
     private readonly HashSet<string> dismissedClipboard = [];
+    private IReadOnlyList<TorrentRowViewModel> selection = [];
     private FileSystemWatcher? watcher;
 
     public MainViewModel(TorrentService service, HttpClient http, IShell shell)
     {
         this.service = service;
-        this.http = http;
         Shell = shell;
         Settings = new SettingsViewModel(service, shell, () => { RefreshTop(); StartWatchFolder(); });
         SpeedTest = new SpeedTestViewModel(service, http, shell, () => { Settings.Reload(); RefreshTop(); return Task.CompletedTask; });
+
+        Filters =
+        [
+            new NavItem("All transfers", "IconStack", Filter.All),
+            new NavItem("Downloading", "IconCircleDown", Filter.Downloading),
+            new NavItem("Seeding", "IconCircleUp", Filter.Seeding),
+            new NavItem("Completed", "IconCircleCheck", Filter.Completed),
+            new NavItem("Paused", "IconCirclePause", Filter.Paused),
+            new NavItem("Errors", "IconAlert", Filter.Errors, danger: true),
+        ];
+        Tools =
+        [
+            new NavItem("Speed test", "IconGauge", page: ViewModels.Page.SpeedTest),
+            new NavItem("Settings", "IconSettings", page: ViewModels.Page.Settings),
+        ];
+        selectedFilter = Filters[0];
 
         service.Added += e => Ui(() => AddRow(e));
         service.Removed += e => Ui(() => RemoveRow(e));
@@ -47,50 +62,51 @@ public sealed partial class MainViewModel : ObservableObject
     public SpeedTestViewModel SpeedTest { get; }
     public SettingsViewModel Settings { get; }
     public SpeedHistory History => service.History;
+    public ObservableCollection<NavItem> Filters { get; }
+    public ObservableCollection<NavItem> Tools { get; }
 
     /// <summary>Marshals onto the UI thread. Set by the app; defaults to running inline for tests.</summary>
     public static Action<Action> Ui { get; set; } = a => a();
 
+    /// <summary>The table's rows: every torrent that passes the current filter and search.</summary>
     public ObservableCollection<TorrentRowViewModel> Rows { get; } = [];
 
     [ObservableProperty] private Page page = Page.Transfers;
-    [ObservableProperty] private Filter filter = Filter.All;
+    [ObservableProperty] private NavItem? selectedFilter;
+    [ObservableProperty] private NavItem? selectedTool;
     [ObservableProperty] private string search = "";
-    [ObservableProperty] private string addText = "";
     [ObservableProperty] private TorrentRowViewModel? selected;
+    [ObservableProperty] private int selectionCount;
     [ObservableProperty] private bool isAdding;
 
     [ObservableProperty] private string downRateText = "0 B/s";
     [ObservableProperty] private string upRateText = "0 B/s";
-    [ObservableProperty] private string downLimitText = "";
-    [ObservableProperty] private string upLimitText = "";
+    [ObservableProperty] private string limitText = "";
     [ObservableProperty] private bool slowMode;
-    [ObservableProperty] private bool slowActive;
     [ObservableProperty] private string slowText = "";
     [ObservableProperty] private int historyVersion;
 
     [ObservableProperty] private string dhtText = "";
     [ObservableProperty] private string portText = "";
+    [ObservableProperty] private bool portOk;
     [ObservableProperty] private string connectionsText = "";
     [ObservableProperty] private string freeText = "";
     [ObservableProperty] private string totalsText = "";
-
     [ObservableProperty] private int countAll;
-    [ObservableProperty] private int countActive;
-    [ObservableProperty] private int countSeeding;
-    [ObservableProperty] private int countPaused;
-    [ObservableProperty] private int countDone;
-    [ObservableProperty] private int countErrors;
 
     [ObservableProperty] private string? clipboardOffer;
     [ObservableProperty] private string clipboardOfferText = "";
 
+    public Filter Filter => SelectedFilter?.Filter ?? Filter.All;
     public bool IsTransfers => Page == Page.Transfers;
     public bool IsSpeedTest => Page == Page.SpeedTest;
     public bool IsSettings => Page == Page.Settings;
     public bool IsEmpty => CountAll == 0;
     public bool NothingMatches => CountAll > 0 && Rows.Count == 0;
-    public bool HasSelection => Selected != null;
+    public bool HasSelection => SelectionCount > 0;
+    public bool ShowDetails => Selected != null;
+    public string ListTitle => Search.Trim().Length > 0 ? $"Results for \"{Search.Trim()}\"" : SelectedFilter?.Title ?? "All transfers";
+    public string SelectionText => SelectionCount > 1 ? $"{SelectionCount} selected" : "";
 
     partial void OnPageChanged(Page value)
     {
@@ -101,16 +117,62 @@ public sealed partial class MainViewModel : ObservableObject
         if (value == Page.SpeedTest) SpeedTest.ShowPrevious();
     }
 
-    partial void OnFilterChanged(Filter value) => Rebuild();
-    partial void OnSearchChanged(string value) => Rebuild();
+    partial void OnSelectedFilterChanged(NavItem? value)
+    {
+        if (value == null) return;
+        SelectedTool = null;
+        Page = Page.Transfers;
+        OnPropertyChanged(nameof(Filter));
+        OnPropertyChanged(nameof(ListTitle));
+        Rebuild();
+    }
+
+    partial void OnSelectedToolChanged(NavItem? value)
+    {
+        if (value?.Page is not { } p) return;
+        SelectedFilter = null;
+        Page = p;
+    }
+
+    partial void OnSearchChanged(string value)
+    {
+        if (Page != Page.Transfers) SelectedFilter = Filters[0];
+        OnPropertyChanged(nameof(ListTitle));
+        Rebuild();
+    }
+
     partial void OnCountAllChanged(int value) => OnPropertyChanged(nameof(IsEmpty));
-    partial void OnCountErrorsChanged(int value) => OnPropertyChanged(nameof(HasErrors));
-    public bool HasErrors => CountErrors > 0;
 
     partial void OnSelectedChanged(TorrentRowViewModel? value)
     {
-        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(ShowDetails));
         LoadDetails(value);
+    }
+
+    partial void OnSelectionCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(HasSelection));
+        OnPropertyChanged(nameof(SelectionText));
+        foreach (var c in new IRelayCommand[] { ResumeSelectedCommand, PauseSelectedCommand, RemoveSelectedCommand, OpenFolderSelectedCommand, ForceStartSelectedCommand, RecheckSelectedCommand, CopyMagnetSelectedCommand })
+            c.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Called by the table whenever its selection changes.</summary>
+    public void SetSelection(IReadOnlyList<TorrentRowViewModel> rows)
+    {
+        selection = rows;
+        SelectionCount = rows.Count;
+        Selected = rows.Count == 1 ? rows[0] : null;
+    }
+
+    public void ShowPage(Page p)
+    {
+        if (p == Page.Transfers)
+        {
+            SelectedFilter ??= Filters[0];
+            Page = p;
+        }
+        else SelectedTool = Tools.First(t => t.Page == p);
     }
 
     partial void OnSlowModeChanged(bool value)
@@ -127,11 +189,6 @@ public sealed partial class MainViewModel : ObservableObject
         await service.TickAsync();
         RefreshTop();
     }
-
-    [RelayCommand] private void ShowTransfers() => Page = Page.Transfers;
-    [RelayCommand] private void ShowSpeedTest() => Page = Page.SpeedTest;
-    [RelayCommand] private void ShowSettings() => Page = Page.Settings;
-    [RelayCommand] private void SetFilter(Filter f) => Filter = f;
 
     // ------------------------------------------------------------------ the tick
 
@@ -152,23 +209,23 @@ public sealed partial class MainViewModel : ObservableObject
         HistoryVersion++;
 
         SlowMode = s.SlowMode;
-        SlowActive = service.SlowActive;
         var (down, up) = SpeedSchedule.EffectiveLimits(s, DateTime.Now);
-        DownLimitText = down > 0 ? "limit " + Format.Speed(down) : "";
-        UpLimitText = up > 0 ? "limit " + Format.Speed(up) : "";
-        SlowText = s.SlowMode ? "Slow mode on"
-                 : SlowActive ? $"Slow mode until {Format.ClockMinute(s.ScheduleToMinute)}"
-                 : s.ScheduleEnabled ? $"Slow from {Format.ClockMinute(s.ScheduleFromMinute)}"
-                 : "Slow mode";
+        LimitText = down == 0 && up == 0 ? "No limits"
+                  : $"Limited to {(down > 0 ? Format.Speed(down) : "any")} down, {(up > 0 ? Format.Speed(up) : "any")} up";
+        SlowText = s.SlowMode ? "On until you turn it off"
+                 : service.SlowActive ? $"On until {Format.ClockMinute(s.ScheduleToMinute)}"
+                 : s.ScheduleEnabled ? $"Turns on at {Format.ClockMinute(s.ScheduleFromMinute)}"
+                 : $"{Format.Limit(s.SlowDownloadLimitKiB)} down, {Format.Limit(s.SlowUploadLimitKiB)} up";
 
-        DhtText = !s.Dht ? "DHT off" : service.DhtReady ? $"DHT {service.DhtNodes} nodes" : "DHT connecting";
-        PortText = $"Port {s.ListenPort}" + (s.PortForwarding ? (service.PortMapped ? ", forwarded" : ", not forwarded") : "");
-        ConnectionsText = $"{service.OpenConnections} connections";
+        DhtText = !s.Dht ? "DHT off" : service.DhtNodes > 0 ? $"DHT {service.DhtNodes} nodes" : "DHT connecting";
+        PortOk = service.PortMapped;
+        PortText = $"Port {s.ListenPort}" + (s.PortForwarding ? (service.PortMapped ? " open" : " not forwarded") : "");
+        ConnectionsText = $"{service.OpenConnections} peers";
         var free = AddTorrentViewModel.FreeSpace(s.DownloadDir);
         FreeText = free is { } f ? $"{Format.Size(f)} free" : "";
 
         var entries = service.Entries;
-        TotalsText = $"{Format.Size(entries.Sum(e => e.Record.Downloaded))} down, {Format.Size(entries.Sum(e => e.Record.Uploaded))} up all time";
+        TotalsText = $"{Format.Size(entries.Sum(e => e.Record.Downloaded))} down, {Format.Size(entries.Sum(e => e.Record.Uploaded))} up in total";
     }
 
     // ------------------------------------------------------------------ the list
@@ -176,7 +233,7 @@ public sealed partial class MainViewModel : ObservableObject
     private void AddRow(TorrentEntry e)
     {
         if (rowsById.ContainsKey(e.Id)) return;
-        var row = new TorrentRowViewModel(e, this);
+        var row = new TorrentRowViewModel(e);
         row.Refresh();
         rowsById[e.Id] = row;
         Rebuild();
@@ -191,56 +248,40 @@ public sealed partial class MainViewModel : ObservableObject
 
     private static bool Matches(TorrentRowViewModel r, Filter f) => f switch
     {
-        Filter.Active => r.Status is EntryStatus.Downloading or EntryStatus.Metadata or EntryStatus.Starting
-                                   or EntryStatus.Queued or EntryStatus.Checking or EntryStatus.Moving,
+        Filter.Downloading => r.Status is EntryStatus.Downloading or EntryStatus.Metadata or EntryStatus.Starting
+                                       or EntryStatus.Queued or EntryStatus.Checking or EntryStatus.Moving,
         Filter.Seeding => r.Status == EntryStatus.Seeding,
+        Filter.Completed => r.Status is EntryStatus.Done or EntryStatus.Seeding,
         Filter.Paused => r.Status == EntryStatus.Paused,
-        Filter.Done => r.Status is EntryStatus.Done or EntryStatus.Seeding,
         Filter.Errors => r.Status == EntryStatus.Error,
         _ => true,
     };
 
-    /// <summary>Brings the visible list in line with the filter and search, moving as little as possible.</summary>
+    /// <summary>Brings the table in line with the filter and search, touching as little as possible.</summary>
     private void Rebuild()
     {
         var all = rowsById.Values.OrderByDescending(r => r.Entry.Record.AddedUtc).ToList();
         CountAll = all.Count;
-        CountActive = all.Count(r => Matches(r, Filter.Active));
-        CountSeeding = all.Count(r => Matches(r, Filter.Seeding));
-        CountPaused = all.Count(r => Matches(r, Filter.Paused));
-        CountDone = all.Count(r => Matches(r, Filter.Done));
-        CountErrors = all.Count(r => Matches(r, Filter.Errors));
+        foreach (var n in Filters)
+            n.Count = all.Count(r => Matches(r, n.Filter!.Value));
+        var errors = Filters.First(n => n.Filter == Filter.Errors);
+        errors.IsShown = errors.Count > 0;
 
         var term = Search.Trim();
         var wanted = all.Where(r => Matches(r, Filter) &&
                                     (term.Length == 0 || r.Name.Contains(term, StringComparison.OrdinalIgnoreCase)))
                         .ToList();
+        var set = wanted.ToHashSet();
 
         for (var i = Rows.Count - 1; i >= 0; i--)
-            if (!wanted.Contains(Rows[i])) Rows.RemoveAt(i);
-        for (var i = 0; i < wanted.Count; i++)
-        {
-            var at = Rows.IndexOf(wanted[i]);
-            if (at == i) continue;
-            if (at >= 0) Rows.Move(at, i);
-            else Rows.Insert(i, wanted[i]);
-        }
+            if (!set.Contains(Rows[i])) Rows.RemoveAt(i);
+        // The table keeps its own sort order, so only membership matters here.
+        foreach (var r in wanted)
+            if (!Rows.Contains(r)) Rows.Add(r);
         OnPropertyChanged(nameof(NothingMatches));
     }
 
     // ------------------------------------------------------------------ adding
-
-    [RelayCommand]
-    private async Task AddFromBoxAsync()
-    {
-        var text = AddText;
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            await AddFilesAsync();
-            return;
-        }
-        if (await AddSourceAsync(text)) AddText = "";
-    }
 
     [RelayCommand]
     private async Task AddFilesAsync()
@@ -249,13 +290,39 @@ public sealed partial class MainViewModel : ObservableObject
             await AddSourceAsync(path);
     }
 
+    [RelayCommand]
+    private async Task AddLinkAsync()
+    {
+        var clip = await Shell.GetClipboardTextAsync();
+        var suggestion = TorrentInput.Classify(clip).Kind is TorrentInputKind.Magnet or TorrentInputKind.InfoHash or TorrentInputKind.Url ? clip!.Trim() : null;
+        var text = await Shell.ShowAddLinkAsync(suggestion);
+        if (string.IsNullOrWhiteSpace(text)) return;
+        foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            await AddSourceAsync(line);
+    }
+
+    /// <summary>Ctrl+V anywhere outside a text box: whatever torrents are on the clipboard.</summary>
+    [RelayCommand]
+    private async Task PasteAsync()
+    {
+        var clip = await Shell.GetClipboardTextAsync();
+        var lines = (clip ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                .Where(l => TorrentInput.Classify(l).Kind != TorrentInputKind.None).ToList();
+        if (lines.Count == 0)
+        {
+            Shell.Notify("Nothing to add", "The clipboard has no magnet link, info hash or torrent link on it.");
+            return;
+        }
+        foreach (var line in lines) await AddSourceAsync(line);
+    }
+
     /// <summary>Anything: a magnet, a hash, a link to a .torrent, or a file. Used by paste, drop, the command line and the watch folder.</summary>
     public async Task<bool> AddSourceAsync(string text, bool quiet = false)
     {
         var (kind, value) = TorrentInput.Classify(text);
         if (kind == TorrentInputKind.None)
         {
-            Shell.Notify("Not a torrent", "Paste a magnet link, an info hash, or a link to a .torrent file.", error: true);
+            Shell.Notify("Not a torrent", "Use a magnet link, an info hash, or a link to a .torrent file.", error: true);
             return false;
         }
 
@@ -268,7 +335,7 @@ public sealed partial class MainViewModel : ObservableObject
             {
                 if (!MagnetLink.TryParse(value, out magnet))
                 {
-                    Shell.Notify("That magnet link is broken", "It is missing or garbles the info hash.", error: true);
+                    Shell.Notify("That magnet link is broken", "Its info hash is missing or damaged.", error: true);
                     return false;
                 }
                 if (Existing(magnet.InfoHashes)) return true;
@@ -276,8 +343,7 @@ public sealed partial class MainViewModel : ObservableObject
             else
             {
                 bytes = await service.FetchTorrentAsync(value);
-                var torrent = Torrent.Load(bytes);
-                if (Existing(torrent.InfoHashes)) return true;
+                if (Existing(Torrent.Load(bytes).InfoHashes)) return true;
             }
 
             AddRequest? request;
@@ -292,15 +358,15 @@ public sealed partial class MainViewModel : ObservableObject
             }
 
             var entry = await service.AddAsync(request);
-            Page = Page.Transfers;
-            if (rowsById.TryGetValue(entry.Id, out var row)) Selected = row;
+            ShowPage(Page.Transfers);
             await service.TickAsync();
+            SelectRequested?.Invoke(rowsById.GetValueOrDefault(entry.Id));
             return true;
         }
         catch (DuplicateTorrentException dup)
         {
-            Select(dup.Existing);
-            Shell.Notify("Already in the list", dup.Existing.Name);
+            Reveal(dup.Existing);
+            Shell.Notify("Already in your list", dup.Existing.Name);
             return true;
         }
         catch (Exception ex)
@@ -314,20 +380,22 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    /// <summary>Asks the table to select a row and scroll to it.</summary>
+    public event Action<TorrentRowViewModel?>? SelectRequested;
+
     private bool Existing(InfoHashes hashes)
     {
         if (service.Find(hashes) is not { } e) return false;
-        Select(e);
-        Shell.Notify("Already in the list", e.Name);
+        Reveal(e);
+        Shell.Notify("Already in your list", e.Name);
         return true;
     }
 
-    private void Select(TorrentEntry e)
+    private void Reveal(TorrentEntry e)
     {
-        Page = Page.Transfers;
-        Filter = Filter.All;
         Search = "";
-        if (rowsById.TryGetValue(e.Id, out var row)) Selected = row;
+        SelectedFilter = Filters[0];
+        SelectRequested?.Invoke(rowsById.GetValueOrDefault(e.Id));
     }
 
     /// <summary>Called when the window comes to the front. Offers a magnet the user just copied.</summary>
@@ -338,7 +406,7 @@ public sealed partial class MainViewModel : ObservableObject
         if (dismissedClipboard.Contains(value) || !MagnetLink.TryParse(value, out var magnet)) return;
         if (service.Find(magnet.InfoHashes) != null) return;
         ClipboardOffer = value;
-        ClipboardOfferText = string.IsNullOrEmpty(magnet.Name) ? "There is a magnet link on your clipboard." : $"\"{magnet.Name}\" is on your clipboard.";
+        ClipboardOfferText = string.IsNullOrEmpty(magnet.Name) ? "You copied a magnet link." : $"You copied \"{magnet.Name}\".";
     }
 
     [RelayCommand]
@@ -385,59 +453,107 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    // ------------------------------------------------------------------ row actions
+    // ------------------------------------------------------------------ actions on the selection
 
-    [RelayCommand]
-    private async Task TogglePauseAsync(TorrentRowViewModel? row)
+    private bool CanAct() => SelectionCount > 0;
+
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task ResumeSelectedAsync()
     {
-        if (row == null) return;
-        if (row.Entry.Record.WantsToRun) await service.PauseAsync(row.Entry);
-        else await service.ResumeAsync(row.Entry);
-        row.Refresh();
-        Rebuild();
+        var rows = selection.ToList();
+        foreach (var r in rows) r.Entry.Record.WantsToRun = true;
+        RefreshRows();
+        foreach (var r in rows) await service.ResumeAsync(r.Entry);
+        RefreshRows();
     }
 
-    [RelayCommand]
-    private async Task ForceStartAsync(TorrentRowViewModel? row)
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task PauseSelectedAsync()
     {
-        if (row == null) return;
-        await service.ResumeAsync(row.Entry, force: true);
-        row.Refresh();
+        var rows = selection.ToList();
+        // Show the intent straight away; the peers are let go in the background, all at once.
+        foreach (var r in rows) r.Entry.Record.WantsToRun = false;
+        RefreshRows();
+        await Task.WhenAll(rows.Select(r => service.PauseAsync(r.Entry)));
+        RefreshRows();
     }
 
-    [RelayCommand]
-    private async Task OpenFolderAsync(TorrentRowViewModel? row)
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task ForceStartSelectedAsync()
     {
-        if (row == null) return;
-        var e = row.Entry;
+        foreach (var r in selection.ToList()) await service.ResumeAsync(r.Entry, force: true);
+        RefreshRows();
+    }
+
+    /// <summary>Space in the table: pause what is running, resume what is not.</summary>
+    [RelayCommand]
+    private async Task TogglePauseSelectedAsync()
+    {
+        if (selection.Count == 0) return;
+        if (selection.Any(r => r.Entry.Record.WantsToRun)) await PauseSelectedAsync();
+        else await ResumeSelectedAsync();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task OpenFolderSelectedAsync()
+    {
+        var e = selection[0].Entry;
         var path = e.HasMetadata && e.Manager.Files.Count > 1 ? e.Manager.ContainingDirectory : e.Record.SaveDir;
         if (!Directory.Exists(path)) path = e.Record.SaveDir;
         await Shell.OpenAsync(path);
     }
 
-    [RelayCommand]
-    private async Task RemoveAsync(TorrentRowViewModel? row)
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task RemoveSelectedAsync()
     {
-        if (row == null) return;
-        var (ok, deleteFiles) = await Shell.ConfirmRemoveAsync(row.Name, row.Entry.HasMetadata);
+        var rows = selection.ToList();
+        if (rows.Count == 0) return;
+        var what = rows.Count == 1 ? rows[0].Name : $"{rows.Count} torrents";
+        var (ok, deleteFiles) = await Shell.ConfirmRemoveAsync(what, rows.Count, rows.Any(r => r.Entry.HasMetadata));
         if (!ok) return;
-        try { await service.RemoveAsync(row.Entry, deleteFiles); }
-        catch (Exception ex) { Shell.Notify("Could not remove", ex.Message, error: true); }
+        foreach (var r in rows)
+        {
+            try { await service.RemoveAsync(r.Entry, deleteFiles); }
+            catch (Exception ex) { Shell.Notify("Could not remove " + r.Name, ex.Message, error: true); }
+        }
     }
 
-    [RelayCommand]
-    private async Task ToggleSequentialAsync(TorrentRowViewModel? row)
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task RecheckSelectedAsync()
     {
-        if (row == null) return;
+        foreach (var r in selection.ToList())
+        {
+            try { await service.RecheckAsync(r.Entry); }
+            catch (Exception ex) { Shell.Notify("Could not check " + r.Name, ex.Message, error: true); }
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanAct))]
+    private async Task CopyMagnetSelectedAsync()
+    {
+        var links = selection.Select(r => MagnetFor(r.Entry)).Where(l => l.Length > 0).ToList();
+        await Shell.CopyAsync(string.Join(Environment.NewLine, links));
+        Shell.Notify(links.Count == 1 ? "Magnet link copied" : $"{links.Count} magnet links copied", links.Count == 1 ? selection[0].Name : "One per line.");
+    }
+
+    private static string MagnetFor(TorrentEntry e) =>
+        e.Manager.Torrent is { } t
+            ? new MagnetLink(t.InfoHashes, t.Name, t.AnnounceUrls.SelectMany(x => x).ToList(), null, t.Size).ToV1String()
+            : e.Record.Magnet ?? "";
+
+    [RelayCommand]
+    private async Task ToggleSequentialAsync()
+    {
+        if (Selected is not { } row) return;
         await service.SetSequentialAsync(row.Entry, !row.Entry.Record.Sequential);
         row.Refresh();
-        if (row == Selected) DetailSequential = row.Sequential;
+        LoadDetails(row);
     }
 
     [RelayCommand]
-    private async Task MoveAsync(TorrentRowViewModel? row)
+    private async Task MoveSelectedAsync()
     {
-        if (row == null) return;
+        if (Selected is not { } row) return;
         var dir = await Shell.PickFolderAsync(row.Entry.Record.SaveDir);
         if (dir == null || string.Equals(Path.GetFullPath(dir), Path.GetFullPath(row.Entry.Record.SaveDir), StringComparison.OrdinalIgnoreCase)) return;
         try
@@ -449,29 +565,13 @@ public sealed partial class MainViewModel : ObservableObject
         LoadDetails(Selected);
     }
 
-    [RelayCommand]
-    private async Task RecheckAsync(TorrentRowViewModel? row)
-    {
-        if (row == null) return;
-        try { await service.RecheckAsync(row.Entry); }
-        catch (Exception ex) { Shell.Notify("Could not check the files", ex.Message, error: true); }
-    }
-
-    [RelayCommand]
-    private async Task CopyMagnetAsync(TorrentRowViewModel? row)
-    {
-        if (row == null) return;
-        var e = row.Entry;
-        var link = e.Manager.Torrent is { } t
-            ? new MagnetLink(t.InfoHashes, t.Name, t.AnnounceUrls.SelectMany(x => x).ToList(), null, t.Size).ToV1String()
-            : e.Record.Magnet ?? "";
-        await Shell.CopyAsync(link);
-        Shell.Notify("Magnet link copied", e.Name);
-    }
-
     [RelayCommand] private Task PauseAllAsync() => service.PauseAllAsync();
     [RelayCommand] private Task ResumeAllAsync() => service.ResumeAllAsync();
+    [RelayCommand] private void ToggleSlowMode() => SlowMode = !SlowMode;
 
-    [RelayCommand]
-    private void ToggleSlowMode() => SlowMode = !SlowMode;
+    private void RefreshRows()
+    {
+        foreach (var r in selection) r.Refresh();
+        Rebuild();
+    }
 }

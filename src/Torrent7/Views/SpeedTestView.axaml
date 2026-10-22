@@ -1,0 +1,145 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Torrent7.ViewModels"
+             xmlns:c="using:Torrent7.Controls"
+             x:Class="Torrent7.Views.SpeedTestView"
+             x:DataType="vm:SpeedTestViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.big">
+            <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFeatures" Value="+tnum" />
+        </Style>
+        <Style Selector="TextBlock.unit">
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer>
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="980" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel Margin="28,20,28,28" Spacing="16">
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="title" Text="Speed test" />
+                    <TextBlock Classes="dim" Text="{Binding PhaseText}" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- The measurement -->
+                <Border Classes="panel" Padding="24,22">
+                    <Grid ColumnDefinitions="300,*" RowDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="18">
+                            <StackPanel Spacing="2">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <c:StrokeIcon Data="{StaticResource IconDown}" Width="14" Height="14" Foreground="{StaticResource AccentBrush}" />
+                                    <TextBlock Classes="dim" Text="Download" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Classes="big accent" FontSize="56" Text="{Binding DownValue}" MinHeight="70" />
+                                    <TextBlock Classes="unit" FontSize="16" Text="Mbps" Margin="0,0,0,12" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Grid ColumnDefinitions="*,*">
+                                <StackPanel Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <c:StrokeIcon Data="{StaticResource IconUp}" Width="14" Height="14" Foreground="{StaticResource UpBrush}" />
+                                        <TextBlock Classes="dim" Text="Upload" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="big" FontSize="28" Text="{Binding UpValue}" MinHeight="36" />
+                                        <TextBlock Classes="unit" FontSize="13" Text="Mbps" Margin="0,0,0,6" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <c:StrokeIcon Data="{StaticResource IconActivity}" Width="14" Height="14" Foreground="{StaticResource TextDimBrush}" />
+                                        <TextBlock Classes="dim" Text="Latency" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Classes="big" FontSize="28" Text="{Binding PingValue}" MinHeight="36" />
+                                        <TextBlock Classes="unit" FontSize="13" Text="ms" Margin="0,0,0,6" />
+                                    </StackPanel>
+                                    <TextBlock Classes="caption" Text="{Binding JitterText}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <Border Grid.Column="1" Margin="24,0,0,0" Background="{StaticResource SunkenBrush}" CornerRadius="{StaticResource ControlRadius}"
+                                Padding="10" MinHeight="190">
+                            <Panel>
+                                <c:Sparkline History="{Binding Live}" Version="{Binding HistoryVersion}" />
+                                <TextBlock Classes="caption" Text="The graph fills in while the test runs." HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           IsVisible="{Binding ShowGraphHint}" />
+                            </Panel>
+                        </Border>
+
+                        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*" Margin="0,20,0,0">
+                            <Button Classes="accent" Height="36" Padding="22,0" Command="{Binding RunCommand}" AutomationProperties.Name="Start test">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <c:StrokeIcon Data="{StaticResource IconGauge}" Width="16" Height="16" />
+                                    <TextBlock Text="{Binding RunLabel}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <ProgressBar Grid.Column="1" Margin="20,0,0,0" Value="{Binding PhaseProgress}" Maximum="100" IsVisible="{Binding IsRunning}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Background="{StaticResource DangerSoftBrush}" CornerRadius="{StaticResource ControlRadius}" Padding="12,10"
+                        IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Classes="danger" Text="{Binding ErrorText}" TextWrapping="Wrap" />
+                </Border>
+
+                <Grid x:Name="Cards" ColumnDefinitions="*,16,*" RowDefinitions="Auto,Auto">
+                    <!-- What to do with the result -->
+                    <Border x:Name="TuneCard" Grid.Column="0" Classes="panel" Padding="20,18" IsVisible="{Binding HasSuggestion}">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <c:StrokeIcon Data="{StaticResource IconBolt}" Width="16" Height="16" Foreground="{StaticResource AccentBrush}" />
+                                <TextBlock Classes="heading" Text="Tune Torrent7 to this line" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <TextBlock Classes="dim" Text="Upload cap" />
+                                <TextBlock Grid.Column="1" Classes="num" Text="{Binding SuggestUpload}" />
+                                <TextBlock Grid.Row="1" Classes="dim" Text="Peers" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Classes="num" Text="{Binding SuggestConnections}" Margin="0,8,0,0" />
+                            </Grid>
+                            <TextBlock Classes="caption" TextWrapping="Wrap"
+                                       Text="A full uplink delays the small replies every download depends on, so capping upload at 80% keeps downloads fast." />
+                            <Button HorizontalAlignment="Left" Content="Apply" Command="{Binding ApplySuggestionsCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Earlier results -->
+                    <Border x:Name="HistoryCard" Grid.Column="2" Classes="panel" Padding="20,18" IsVisible="{Binding HasHistory}">
+                        <StackPanel Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <c:StrokeIcon Data="{StaticResource IconHistory}" Width="16" Height="16" Foreground="{StaticResource TextDimBrush}" />
+                                <TextBlock Classes="heading" Text="Recent results" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="2*,*,*,*">
+                                <TextBlock Classes="key caption" Text="When" />
+                                <TextBlock Grid.Column="1" Classes="caption" Text="Down" HorizontalAlignment="Right" />
+                                <TextBlock Grid.Column="2" Classes="caption" Text="Up" HorizontalAlignment="Right" />
+                                <TextBlock Grid.Column="3" Classes="caption" Text="Latency" HorizontalAlignment="Right" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding History}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SpeedTestRow">
+                                        <Grid ColumnDefinitions="2*,*,*,*" Margin="0,3">
+                                            <TextBlock Classes="num dim" Text="{Binding When}" />
+                                            <TextBlock Grid.Column="1" Classes="num" Text="{Binding Down}" HorizontalAlignment="Right" />
+                                            <TextBlock Grid.Column="2" Classes="num" Text="{Binding Up}" HorizontalAlignment="Right" />
+                                            <TextBlock Grid.Column="3" Classes="num dim" Text="{Binding Latency}" HorizontalAlignment="Right" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

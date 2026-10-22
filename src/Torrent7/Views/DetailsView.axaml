@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Torrent7.ViewModels"
+             xmlns:c="using:Torrent7.Controls"
+             x:Class="Torrent7.Views.DetailsView"
+             x:DataType="vm:MainViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.key">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style Selector="TextBlock.val">
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="FontFeatures" Value="+tnum" />
+        </Style>
+        <Style Selector="StackPanel.fact">
+            <Setter Property="Margin" Value="0,0,24,10" />
+        </Style>
+    </UserControl.Styles>
+
+    <TabControl Classes="details" SelectedIndex="{Binding DetailTab}" Margin="12,0,12,0">
+
+        <TabItem Header="General">
+            <Grid ColumnDefinitions="*,1,280" Margin="8,10,0,10">
+                <ScrollViewer Grid.Column="0" Margin="0,0,16,0">
+                    <StackPanel>
+                        <!-- Which pieces are on disk -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                            <TextBlock Classes="key" Text="Pieces on disk" />
+                            <TextBlock Grid.Column="1" Classes="caption num" Text="{Binding InfoProgress}" />
+                        </Grid>
+                        <c:PieceBar Height="10" Buckets="{Binding PieceBuckets}" Version="{Binding PieceVersion}" Margin="0,0,0,14" />
+
+                        <Border Background="{StaticResource DangerSoftBrush}" CornerRadius="{StaticResource ControlRadius}" Padding="10,8" Margin="0,0,0,12"
+                                IsVisible="{Binding InfoError, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <c:StrokeIcon Data="{StaticResource IconAlert}" Foreground="{StaticResource DangerBrush}" Width="15" Height="15" />
+                                <TextBlock Classes="danger" Text="{Binding InfoError}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Size" /><TextBlock Classes="val" Text="{Binding InfoSize}" /></StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Pieces" /><TextBlock Classes="val" Text="{Binding InfoPieces}" /></StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="0" Classes="fact"><TextBlock Classes="key" Text="Type" /><TextBlock Classes="val" Text="{Binding InfoType}" ToolTip.Tip="{Binding InfoType}" /></StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Classes="fact"><TextBlock Classes="key" Text="Downloaded" /><TextBlock Classes="val" Text="{Binding InfoDownloaded}" /></StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Classes="fact"><TextBlock Classes="key" Text="Uploaded" /><TextBlock Classes="val" Text="{Binding InfoUploaded}" /></StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Classes="fact"><TextBlock Classes="key" Text="Share ratio" /><TextBlock Classes="val" Text="{Binding InfoRatio}" /></StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="2" Classes="fact"><TextBlock Classes="key" Text="Added" /><TextBlock Classes="val" Text="{Binding InfoAdded}" /></StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="2" Classes="fact"><TextBlock Classes="key" Text="Completed" /><TextBlock Classes="val" Text="{Binding InfoCompleted}" /></StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Classes="fact"><TextBlock Classes="key" Text="Peers" /><TextBlock Classes="val" Text="{Binding InfoPeers}" ToolTip.Tip="{Binding InfoPeers}" /></StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="2*,*">
+                            <StackPanel Classes="fact">
+                                <TextBlock Classes="key" Text="Saved in" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="val" Text="{Binding InfoSaveDir}" ToolTip.Tip="{Binding InfoSaveDir}" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" />
+                                    <Button Grid.Column="1" Classes="tool" Height="22" Padding="6,0" Margin="6,0,0,0" Content="Open" Command="{Binding OpenSaveDirCommand}" />
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Classes="fact">
+                                <TextBlock Classes="key" Text="Info hash" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Classes="mono val" FontSize="12" Text="{Binding InfoHash}" VerticalAlignment="Center" ToolTip.Tip="{Binding InfoHash}" />
+                                    <Button Grid.Column="1" Classes="tool" Height="22" Padding="6,0" Margin="6,0,0,0" Content="Copy" Command="{Binding CopyHashCommand}" />
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Classes="fact" IsVisible="{Binding InfoComment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Classes="key" Text="Comment" />
+                            <TextBlock Text="{Binding InfoComment}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Column="1" Classes="vline" />
+
+                <!-- Settings for this torrent only -->
+                <StackPanel Grid.Column="2" Margin="20,0,4,0" Spacing="10">
+                    <TextBlock Classes="heading" Text="This torrent" />
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" >
+                        <TextBlock Classes="dim" Text="Download limit" VerticalAlignment="Center" />
+                        <NumericUpDown Grid.Column="1" Value="{Binding DetailDownLimit}" Minimum="0" Maximum="10000000" Width="130">
+                            <NumericUpDown.InnerRightContent><TextBlock Classes="caption" Text="KiB/s" Margin="0,0,10,0" VerticalAlignment="Center" /></NumericUpDown.InnerRightContent>
+                        </NumericUpDown>
+                        <TextBlock Grid.Row="1" Classes="dim" Text="Upload limit" VerticalAlignment="Center" Margin="0,8,0,0" />
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding DetailUpLimit}" Minimum="0" Maximum="10000000" Width="130" Margin="0,8,0,0">
+                            <NumericUpDown.InnerRightContent><TextBlock Classes="caption" Text="KiB/s" Margin="0,0,10,0" VerticalAlignment="Center" /></NumericUpDown.InnerRightContent>
+                        </NumericUpDown>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Classes="caption" Text="0 means no limit" VerticalAlignment="Center" />
+                        <Button Grid.Column="1" Content="Set limits" Command="{Binding ApplyDetailLimitsCommand}" />
+                    </Grid>
+                    <Border Classes="hairline" Margin="0,4" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                            <TextBlock Text="Download in order" />
+                            <TextBlock Classes="caption" TextWrapping="Wrap" Text="Front to back, so video can play before it finishes." />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsChecked="{Binding DetailSequential}" Margin="8,0,-10,0" VerticalAlignment="Top"
+                                      AutomationProperties.Name="Download in order" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Files">
+            <Grid RowDefinitions="Auto,*">
+                <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,4">
+                    <Button Classes="tool" Height="26" Content="Select all" Command="{Binding SelectAllFilesCommand}">
+                        <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
+                    </Button>
+                    <Button Classes="tool" Height="26" Content="Select none" Command="{Binding SelectAllFilesCommand}">
+                        <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
+                    </Button>
+                    <TextBlock Classes="caption" VerticalAlignment="Center" Margin="10,0"
+                               Text="Unticked files are skipped. Tick one later and it downloads." />
+                </StackPanel>
+                <DataGrid Grid.Row="1" Classes="compact" ItemsSource="{Binding Files}" SelectionMode="Single" CanUserReorderColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Header="" Width="40" CanUserResize="False" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <CheckBox Classes="bare" IsChecked="{Binding Include}" HorizontalAlignment="Center" AutomationProperties.Name="Download this file" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Name" Width="*" SortMemberPath="Path">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <TextBlock Text="{Binding Path}" Margin="12,0" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" ToolTip.Tip="{Binding Path}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Size" Width="90" SortMemberPath="Length">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <TextBlock Classes="num dim" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Progress" Width="150" SortMemberPath="Progress">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <Grid ColumnDefinitions="*,46" Margin="12,0" VerticalAlignment="Center">
+                                        <c:Meter Value="{Binding Progress}" VerticalAlignment="Center" Opacity="{Binding MeterOpacity}" />
+                                        <TextBlock Grid.Column="1" Classes="num dim" FontSize="12" Text="{Binding ProgressText}" HorizontalAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Priority" Width="128" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <ComboBox ItemsSource="{x:Static vm:FileRowViewModel.PriorityNames}" SelectedIndex="{Binding PriorityIndex}"
+                                              IsEnabled="{Binding Include}" Height="24" MinHeight="24" Padding="8,0,0,0" Margin="6,0" HorizontalAlignment="Stretch" VerticalAlignment="Center" FontSize="12" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="" Width="44" CanUserResize="False" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate x:DataType="vm:FileRowViewModel">
+                                    <Button Classes="tool square" Height="24" Width="26" ToolTip.Tip="Open this file" AutomationProperties.Name="Open this file"
+                                            Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding}">
+                                        <c:StrokeIcon Data="{StaticResource IconExternal}" Width="14" Height="14" />
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Grid.Row="1" Classes="caption" Text="{Binding FilesEmptyText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="Peers">
+            <Panel Margin="0,6,0,0">
+                <DataGrid Classes="compact" ItemsSource="{Binding Peers}" SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="2*" x:DataType="vm:PeerRow" />
+                        <DataGridTextColumn Header="Client" Binding="{Binding Client}" Width="2*" x:DataType="vm:PeerRow" />
+                        <DataGridTextColumn Header="Down" Binding="{Binding Down}" Width="*" x:DataType="vm:PeerRow" />
+                        <DataGridTextColumn Header="Up" Binding="{Binding Up}" Width="*" x:DataType="vm:PeerRow" />
+                        <DataGridTextColumn Header="Has" Binding="{Binding Have}" Width="*" x:DataType="vm:PeerRow" />
+                        <DataGridTextColumn Header="Notes" Binding="{Binding Flags}" Width="2*" x:DataType="vm:PeerRow" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Classes="caption" Text="{Binding PeersEmptyText}" IsVisible="{Binding !HasPeers}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Panel>
+        </TabItem>
+
+        <TabItem Header="Trackers">
+            <DataGrid Classes="compact" ItemsSource="{Binding Trackers}" SelectionMode="Single" Margin="0,6,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Tracker" Binding="{Binding Url}" Width="3*" x:DataType="vm:TrackerRow" />
+                    <DataGridTextColumn Header="Status" Binding="{Binding State}" Width="*" x:DataType="vm:TrackerRow" />
+                    <DataGridTextColumn Header="Seeds" Binding="{Binding Seeds}" Width="70" x:DataType="vm:TrackerRow" />
+                    <DataGridTextColumn Header="Peers" Binding="{Binding Peers}" Width="70" x:DataType="vm:TrackerRow" />
+                    <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="2*" x:DataType="vm:TrackerRow" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+    </TabControl>
+</UserControl>

@@ -6,78 +6,105 @@
         x:DataType="vm:AddTorrentViewModel"
         Title="Add torrent"
         Icon="avares://Torrent7/Assets/Torrent7.ico"
-        Width="680" Height="560" MinWidth="520" MinHeight="380"
-        WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        Width="720" Height="600" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="24,20,24,20">
-        <StackPanel Grid.Row="0" Spacing="4">
-            <TextBlock Classes="h1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
-            <StackPanel Orientation="Horizontal" Spacing="14">
-                <TextBlock Classes="dim" Text="{Binding Summary}" />
-                <TextBlock Classes="accent" FontSize="12" VerticalAlignment="Center" Text="Private torrent" IsVisible="{Binding IsPrivate}"
-                           ToolTip.Tip="Its tracker keeps count. Torrent7 will not add other trackers to it." />
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <!-- What it is -->
+        <StackPanel Grid.Row="0" Margin="24,20,24,0" Spacing="4">
+            <TextBlock Classes="title" FontSize="17" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Classes="dim num" Text="{Binding Summary}" />
+                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="4" Padding="6,1" IsVisible="{Binding IsPrivate}"
+                        ToolTip.Tip="Its tracker keeps count of what you share. Torrent7 will not add other trackers to it.">
+                    <TextBlock Classes="accent" FontSize="11" FontWeight="SemiBold" Text="PRIVATE" />
+                </Border>
             </StackPanel>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Spacing="6" Margin="0,18,0,12">
-            <TextBlock Classes="label" Text="Save in" />
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBox Text="{Binding SaveDir}" />
-                <Button Grid.Column="1" Margin="6,0,0,0" Content="Browse" Command="{Binding BrowseCommand}" />
+        <!-- Where it goes -->
+        <Border Grid.Row="1" Margin="24,16,24,12" Classes="panel" Padding="14,10">
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                <c:StrokeIcon Data="{StaticResource IconFolder}" Width="16" Height="16" Foreground="{StaticResource TextDimBrush}" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" Text="{Binding SaveDir}" Margin="10,0" AutomationProperties.Name="Save in" />
+                <Button Grid.Column="2" Content="Change..." Command="{Binding BrowseCommand}" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Margin="10,6,0,0" Classes="caption num" Classes.danger="{Binding SpaceShort}" Text="{Binding SpaceText}" />
             </Grid>
-            <TextBlock FontSize="12" Text="{Binding SpaceText}" Classes="faint" Classes.danger="{Binding SpaceShort}" />
-        </StackPanel>
+        </Border>
 
-        <!-- Files, or the wait for them -->
-        <Border Grid.Row="2" Classes="surface" Padding="6">
-            <Panel>
-                <StackPanel IsVisible="{Binding IsFetching}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="380">
-                    <ProgressBar IsIndeterminate="True" Width="200" />
+        <!-- The files, or the wait for them -->
+        <Panel Grid.Row="2" Margin="24,0,24,0">
+            <Border Classes="panel" IsVisible="{Binding !IsFetching}" ClipToBounds="True">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid ColumnDefinitions="*,Auto" Margin="12,6,6,6">
+                        <TextBlock Classes="heading" Text="Files" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" IsVisible="{Binding HasFiles}">
+                            <Button Classes="tool" Height="26" Content="Select all" Command="{Binding SelectAllCommand}">
+                                <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
+                            </Button>
+                            <Button Classes="tool" Height="26" Content="Select none" Command="{Binding SelectAllCommand}">
+                                <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <DataGrid Grid.Row="1" Classes="compact" ItemsSource="{Binding Files}" SelectionMode="Single" CanUserReorderColumns="False"
+                              HeadersVisibility="None" BorderBrush="{StaticResource LineBrush}">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Width="40" CanUserResize="False">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:FileChoice">
+                                        <CheckBox Classes="bare" IsChecked="{Binding Include}" HorizontalAlignment="Center" AutomationProperties.Name="Download this file" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:FileChoice">
+                                        <TextBlock Text="{Binding Path}" Margin="4,0,12,0" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" ToolTip.Tip="{Binding Path}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:FileChoice">
+                                        <TextBlock Classes="num dim" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="1" Classes="caption" Text="The file list arrives once the download starts." HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="{Binding NoFileList}" />
+                </Grid>
+            </Border>
+
+            <Border Classes="panel" IsVisible="{Binding IsFetching}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" MaxWidth="380">
+                    <ProgressBar IsIndeterminate="True" Width="220" />
                     <TextBlock Classes="dim" TextWrapping="Wrap" TextAlignment="Center"
                                Text="Asking peers for the file list. Popular torrents answer in seconds; rare ones can take a while." />
                     <Button HorizontalAlignment="Center" Content="Add without waiting" Command="{Binding AddWithoutWaitingCommand}" />
                 </StackPanel>
-                <TextBlock IsVisible="{Binding FetchError, Converter={x:Static ObjectConverters.IsNotNull}}" Classes="danger" TextWrapping="Wrap"
-                           Margin="12" Text="{Binding FetchError}" />
-                <Grid RowDefinitions="Auto,*" IsVisible="{Binding !IsFetching}">
-                    <StackPanel Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasFiles}" Margin="2,0,0,4">
-                        <Button Classes="ghost" Content="Select all" Command="{Binding SelectAllCommand}">
-                            <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
-                        </Button>
-                        <Button Classes="ghost" Content="Select none" Command="{Binding SelectAllCommand}">
-                            <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
-                        </Button>
-                    </StackPanel>
-                    <ListBox Grid.Row="1" Classes="compact" ItemsSource="{Binding Files}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:FileChoice">
-                                <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <CheckBox IsChecked="{Binding Include}" MinWidth="0" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Path}" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" ToolTip.Tip="{Binding Path}" />
-                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="dim mono" FontSize="12" VerticalAlignment="Center" Margin="12,0,6,0" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
-            </Panel>
-        </Border>
+            </Border>
+            <Border Background="{StaticResource DangerSoftBrush}" CornerRadius="{StaticResource ControlRadius}" Padding="12,10" VerticalAlignment="Top" Margin="0,8,0,0"
+                    IsVisible="{Binding FetchError, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Classes="danger" TextWrapping="Wrap" Text="{Binding FetchError}" />
+            </Border>
+        </Panel>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="20" Margin="0,14,0,0">
+        <!-- How it starts -->
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto,*,Auto,Auto" Margin="24,14,24,20">
             <CheckBox IsChecked="{Binding Start}" Content="Start right away" />
-            <CheckBox IsChecked="{Binding Sequential}" Content="Download in order"
-                      ToolTip.Tip="Fetches pieces front to back so a video can start playing early. Slower on torrents with few seeds." />
-        </StackPanel>
-
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,14,0,0">
-            <Button Classes="ghost" Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
-            <Button Classes="accent" Padding="24,6" Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" IsDefault="True">
+            <CheckBox Grid.Column="1" IsChecked="{Binding Sequential}" Content="Download in order" Margin="20,0,0,0"
+                      ToolTip.Tip="Front to back, so video can play before it finishes. Slower when there are few seeds." />
+            <Button Grid.Column="3" Classes="tool" Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" Margin="0,0,8,0" />
+            <Button Grid.Column="4" Classes="accent" Padding="18,0" Command="{Binding AddCommand}" IsEnabled="{Binding CanAdd}" IsDefault="True"
+                    AutomationProperties.Name="Add">
                 <StackPanel Orientation="Horizontal" Spacing="6">
-                    <c:StrokeIcon Data="{StaticResource IconDown}" />
+                    <c:StrokeIcon Data="{StaticResource IconDownload}" Width="15" Height="15" />
                     <TextBlock Text="Add" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
-        </StackPanel>
+        </Grid>
     </Grid>
 </Window>

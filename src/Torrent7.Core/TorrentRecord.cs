@@ -50,9 +50,16 @@ internal static class SessionStore
         return [];
     }
 
+    private static readonly object Gate = new();
+
     public static void Save(IEnumerable<TorrentRecord> records)
     {
-        Directory.CreateDirectory(AppPaths.DataDir);
-        AtomicFile.WriteAllText(AppPaths.SessionFile, JsonSerializer.Serialize(records.ToList(), JsonContext.Default.ListTorrentRecord));
+        var json = JsonSerializer.Serialize(records.ToList(), JsonContext.Default.ListTorrentRecord);
+        // Several torrents can be paused at once, and each saves; one writer at a time.
+        lock (Gate)
+        {
+            Directory.CreateDirectory(AppPaths.DataDir);
+            AtomicFile.WriteAllText(AppPaths.SessionFile, json);
+        }
     }
 }

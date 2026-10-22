@@ -2,37 +2,44 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Torrent7 design tokens, the same family as LoopIt7.
+        Torrent7 design tokens.
 
-        Palette: one warm near black family plus a single amber accent. Amber means data is
-        moving: progress, live speed, the primary action. Red is reserved for two semantic
-        states only: a torrent that stopped with an error, and the action that deletes files.
+        Palette: neutral graphite, so the interface reads as a tool and the data stands out,
+        plus one amber accent. Amber means "this is moving": live download speed, progress,
+        the primary action, the selected filter. Upload is drawn in a quiet blue grey that is
+        part of the neutral family, not a second accent. Red is reserved for two states only:
+        a torrent that stopped with an error, and the action that deletes files.
 
-        Shape rule, applied everywhere: surfaces 10px, controls 6px, chips are pills. Nothing
-        else invents a radius.
+        Shape rule: panels 8px, controls 6px, the app tile 22% of its size. Nothing else
+        invents a radius.
     -->
 
-    <Color x:Key="BgColor">#100F0D</Color>
-    <Color x:Key="SurfaceColor">#191714</Color>
-    <Color x:Key="SurfaceHiColor">#221F1A</Color>
-    <Color x:Key="SunkenColor">#131110</Color>
-    <Color x:Key="LineColor">#2B2723</Color>
-    <Color x:Key="LineStrongColor">#3C352E</Color>
-    <Color x:Key="TextColor">#EDE9E3</Color>
-    <Color x:Key="TextDimColor">#9A9188</Color>
-    <Color x:Key="TextFaintColor">#6C655C</Color>
-    <Color x:Key="AccentColor">#E8A33D</Color>
-    <Color x:Key="AccentPressColor">#C9862A</Color>
-    <Color x:Key="AccentSoftColor">#3B2E19</Color>
-    <Color x:Key="OnAccentColor">#1A1408</Color>
-    <Color x:Key="DangerColor">#E0553F</Color>
-    <Color x:Key="DangerSoftColor">#3A1F1A</Color>
-    <!-- Upload is the quiet partner of download: the same warm family, desaturated. -->
-    <Color x:Key="UpColor">#B9A88F</Color>
+    <Color x:Key="BgColor">#0E0F11</Color>
+    <Color x:Key="SidebarColor">#131416</Color>
+    <Color x:Key="SurfaceColor">#16171A</Color>
+    <Color x:Key="SurfaceHiColor">#1D1F23</Color>
+    <Color x:Key="RaisedColor">#25272C</Color>
+    <Color x:Key="SunkenColor">#0B0C0E</Color>
+    <Color x:Key="LineColor">#232529</Color>
+    <Color x:Key="LineStrongColor">#30333A</Color>
+    <Color x:Key="TextColor">#ECEDEF</Color>
+    <Color x:Key="TextDimColor">#A2A6AE</Color>
+    <Color x:Key="TextFaintColor">#6C7079</Color>
+    <Color x:Key="AccentColor">#F0A940</Color>
+    <Color x:Key="AccentPressColor">#D99129</Color>
+    <Color x:Key="AccentSoftColor">#2B2216</Color>
+    <Color x:Key="OnAccentColor">#16110A</Color>
+    <Color x:Key="UpColor">#8F9AAD</Color>
+    <Color x:Key="DangerColor">#E5534B</Color>
+    <Color x:Key="DangerSoftColor">#2E1717</Color>
+    <Color x:Key="SelectionColor">#24272D</Color>
+    <Color x:Key="SelectionFocusColor">#2A2D34</Color>
 
     <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
     <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
     <SolidColorBrush x:Key="SurfaceHiBrush" Color="{StaticResource SurfaceHiColor}" />
+    <SolidColorBrush x:Key="RaisedBrush" Color="{StaticResource RaisedColor}" />
     <SolidColorBrush x:Key="SunkenBrush" Color="{StaticResource SunkenColor}" />
     <SolidColorBrush x:Key="LineBrush" Color="{StaticResource LineColor}" />
     <SolidColorBrush x:Key="LineStrongBrush" Color="{StaticResource LineStrongColor}" />
@@ -43,42 +50,69 @@
     <SolidColorBrush x:Key="AccentPressBrush" Color="{StaticResource AccentPressColor}" />
     <SolidColorBrush x:Key="AccentSoftBrush" Color="{StaticResource AccentSoftColor}" />
     <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
+    <SolidColorBrush x:Key="UpBrush" Color="{StaticResource UpColor}" />
     <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
     <SolidColorBrush x:Key="DangerSoftBrush" Color="{StaticResource DangerSoftColor}" />
-    <SolidColorBrush x:Key="UpBrush" Color="{StaticResource UpColor}" />
+    <SolidColorBrush x:Key="SelectionBrush" Color="{StaticResource SelectionColor}" />
+    <SolidColorBrush x:Key="SelectionFocusBrush" Color="{StaticResource SelectionFocusColor}" />
 
-    <!-- Fluent picks these up for toggles, checkboxes, sliders and focus. -->
-    <Color x:Key="SystemAccentColor">#E8A33D</Color>
-    <Color x:Key="SystemAccentColorDark1">#C9862A</Color>
-    <Color x:Key="SystemAccentColorDark2">#A86E1F</Color>
-    <Color x:Key="SystemAccentColorDark3">#7F5216</Color>
-    <Color x:Key="SystemAccentColorLight1">#EDB25E</Color>
-    <Color x:Key="SystemAccentColorLight2">#F1C27F</Color>
-    <Color x:Key="SystemAccentColorLight3">#F5D3A1</Color>
+    <!-- Fluent picks these up for toggles, checkboxes, sliders and focus rings. -->
+    <Color x:Key="SystemAccentColor">#F0A940</Color>
+    <Color x:Key="SystemAccentColorDark1">#D99129</Color>
+    <Color x:Key="SystemAccentColorDark2">#B5761D</Color>
+    <Color x:Key="SystemAccentColorDark3">#8A5914</Color>
+    <Color x:Key="SystemAccentColorLight1">#F3B85E</Color>
+    <Color x:Key="SystemAccentColorLight2">#F6C77E</Color>
+    <Color x:Key="SystemAccentColorLight3">#F9D7A3</Color>
+
+    <!-- Toasts: the strip on top is amber for news and red for problems, never Fluent blue. -->
+    <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="NotificationCardSuccessBackgroundBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="NotificationCardWarningBackgroundBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="NotificationCardErrorBackgroundBrush" Color="{StaticResource DangerColor}" />
+
+    <!-- The torrent table, through the DataGrid theme's own keys. -->
+    <SolidColorBrush x:Key="DataGridColumnHeaderBackgroundBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="DataGridColumnHeaderForegroundBrush" Color="{StaticResource TextFaintColor}" />
+    <SolidColorBrush x:Key="DataGridColumnHeaderHoveredBackgroundBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="DataGridColumnHeaderPressedBackgroundBrush" Color="{StaticResource SurfaceHiColor}" />
+    <SolidColorBrush x:Key="DataGridColumnHeaderDraggedBackgroundBrush" Color="{StaticResource SurfaceHiColor}" />
+    <SolidColorBrush x:Key="DataGridRowHoveredBackgroundColor" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="DataGridRowSelectedBackgroundBrush" Color="{StaticResource SelectionFocusColor}" />
+    <SolidColorBrush x:Key="DataGridRowSelectedHoveredBackgroundBrush" Color="{StaticResource SelectionFocusColor}" />
+    <SolidColorBrush x:Key="DataGridRowSelectedUnfocusedBackgroundBrush" Color="{StaticResource SelectionColor}" />
+    <SolidColorBrush x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundBrush" Color="{StaticResource SelectionColor}" />
+    <x:Double x:Key="DataGridRowSelectedBackgroundOpacity">1</x:Double>
+    <x:Double x:Key="DataGridRowSelectedHoveredBackgroundOpacity">1</x:Double>
+    <x:Double x:Key="DataGridRowSelectedUnfocusedBackgroundOpacity">1</x:Double>
+    <x:Double x:Key="DataGridRowSelectedHoveredUnfocusedBackgroundOpacity">1</x:Double>
+    <SolidColorBrush x:Key="DataGridGridLinesBrush" Color="{StaticResource LineColor}" />
+    <SolidColorBrush x:Key="DataGridCellFocusVisualPrimaryBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="DataGridCellFocusVisualSecondaryBrush" Color="Transparent" />
+    <x:Double x:Key="DataGridSortIconMinWidth">20</x:Double>
 
     <!-- Windows fonts first, then what common Linux desktops ship. -->
-    <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI, Cantarell, Ubuntu, Noto Sans, DejaVu Sans</FontFamily>
-    <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI, Cantarell, Ubuntu, Noto Sans, DejaVu Sans</FontFamily>
+    <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI, Inter, Cantarell, Ubuntu, Noto Sans, DejaVu Sans</FontFamily>
+    <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI, Inter, Cantarell, Ubuntu, Noto Sans, DejaVu Sans</FontFamily>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, JetBrains Mono, Ubuntu Mono, DejaVu Sans Mono</FontFamily>
 
-    <CornerRadius x:Key="SurfaceRadius">10</CornerRadius>
+    <CornerRadius x:Key="PanelRadius">8</CornerRadius>
     <CornerRadius x:Key="ControlRadius">6</CornerRadius>
-    <CornerRadius x:Key="PillRadius">999</CornerRadius>
 
     <!--
-        The mark: a 7 whose stroke lands on a tray. The number, and the download it makes,
-        on a 20 by 20 box.
+        The mark: a 7 whose stem turns into a download arrow. One outline on a 100 grid, the
+        same polygon build/make-assets.py draws into the app icon.
     -->
-    <StreamGeometry x:Key="MarkSeven">M5,4.5 L15,4.5 L9.2,14.2</StreamGeometry>
-    <StreamGeometry x:Key="MarkTray">M4.5,17 L15.5,17</StreamGeometry>
+    <StreamGeometry x:Key="MarkPath">M25,22 L75,22 L75,37 L53.5,63 L62.5,63 L46,83 L29.5,63 L38.5,63 L60,37 L25,37 Z</StreamGeometry>
 
-    <!-- Tabler Icons (MIT), outline set, drawn as 2px strokes on a 24 box. -->
+    <!-- Tabler Icons (MIT), outline set, stroked on a 24 box. -->
     <StreamGeometry x:Key="IconPlus">M12 5l0 14 M5 12l14 0</StreamGeometry>
     <StreamGeometry x:Key="IconLink">M9 15l6 -6 M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464 M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463</StreamGeometry>
     <StreamGeometry x:Key="IconPause">M6 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z M14 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z</StreamGeometry>
     <StreamGeometry x:Key="IconPlay">M7 4v16l13 -8z</StreamGeometry>
     <StreamGeometry x:Key="IconTrash">M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3</StreamGeometry>
     <StreamGeometry x:Key="IconFolder">M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2</StreamGeometry>
+    <StreamGeometry x:Key="IconFolderOpen">M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2</StreamGeometry>
     <StreamGeometry x:Key="IconSettings">M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0</StreamGeometry>
     <StreamGeometry x:Key="IconGauge">M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M13.41 10.59l2.59 -2.59 M7 12a5 5 0 0 1 5 -5</StreamGeometry>
     <StreamGeometry x:Key="IconDown">M12 5l0 14 M18 13l-6 6 M6 13l6 6</StreamGeometry>
@@ -89,14 +123,30 @@
     <StreamGeometry x:Key="IconClock">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3</StreamGeometry>
     <StreamGeometry x:Key="IconCheck">M5 12l5 5l10 -10</StreamGeometry>
     <StreamGeometry x:Key="IconRefresh">M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4 M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4</StreamGeometry>
-    <StreamGeometry x:Key="IconList">M9 6l11 0 M9 12l11 0 M9 18l11 0 M5 6l0 .01 M5 12l0 .01 M5 18l0 .01</StreamGeometry>
     <StreamGeometry x:Key="IconCopy">M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1</StreamGeometry>
     <StreamGeometry x:Key="IconMagnet">M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0 M4 8l5 0 M15 8l4 0</StreamGeometry>
     <StreamGeometry x:Key="IconFile">M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z</StreamGeometry>
-    <StreamGeometry x:Key="IconFolderOpen">M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2</StreamGeometry>
-    <StreamGeometry x:Key="IconAlert">M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z M12 16h.01</StreamGeometry>
-    <StreamGeometry x:Key="IconRocket">M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3 M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3 M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0</StreamGeometry>
+    <StreamGeometry x:Key="IconFiles">M15 3v4a1 1 0 0 0 1 1h4 M18 17h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h4l5 5v7a2 2 0 0 1 -2 2z M16 17v2a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2</StreamGeometry>
+    <StreamGeometry x:Key="IconAlert">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 8v4 M12 16h.01</StreamGeometry>
     <StreamGeometry x:Key="IconExternal">M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6 M11 13l9 -9 M15 4h5v5</StreamGeometry>
-    <StreamGeometry x:Key="IconStop">M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z</StreamGeometry>
+    <StreamGeometry x:Key="IconStack">M12 4l-8 4l8 4l8 -4l-8 -4 M4 12l8 4l8 -4 M4 16l8 4l8 -4</StreamGeometry>
+    <StreamGeometry x:Key="IconCircleDown">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M8 12l4 4 M12 8v8 M16 12l-4 4</StreamGeometry>
+    <StreamGeometry x:Key="IconCircleUp">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 8l-4 4 M12 8v8 M16 12l-4 -4</StreamGeometry>
+    <StreamGeometry x:Key="IconCircleCheck">M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M9 12l2 2l4 -4</StreamGeometry>
+    <StreamGeometry x:Key="IconCirclePause">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M10 9v6 M14 9v6</StreamGeometry>
+    <StreamGeometry x:Key="IconDownload">M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 11l5 5l5 -5 M12 4l0 12</StreamGeometry>
+    <StreamGeometry x:Key="IconChevronDown">M6 9l6 6l6 -6</StreamGeometry>
+    <StreamGeometry x:Key="IconDots">M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0</StreamGeometry>
+    <StreamGeometry x:Key="IconClipboard">M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2 M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z</StreamGeometry>
+    <StreamGeometry x:Key="IconInfo">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 9h.01 M11 12h1v4h1</StreamGeometry>
+    <StreamGeometry x:Key="IconUsers">M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85</StreamGeometry>
+    <StreamGeometry x:Key="IconAntenna">M6 18l0 -3 M10 18l0 -6 M14 18l0 -9 M18 18l0 -12</StreamGeometry>
+    <StreamGeometry x:Key="IconActivity">M3 12h4l3 8l4 -16l3 8h4</StreamGeometry>
+    <StreamGeometry x:Key="IconHistory">M12 8l0 4l2 2 M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5</StreamGeometry>
+    <StreamGeometry x:Key="IconSliders">M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0</StreamGeometry>
+    <StreamGeometry x:Key="IconWorld">M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M3.6 9h16.8 M3.6 15h16.8 M11.5 3a17 17 0 0 0 0 18 M12.5 3a17 17 0 0 1 0 18</StreamGeometry>
+    <StreamGeometry x:Key="IconFolderDown">M12 19h-7a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v3.5 M19 16v6 M22 19l-3 3l-3 -3</StreamGeometry>
+    <StreamGeometry x:Key="IconPlug">M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2</StreamGeometry>
+    <StreamGeometry x:Key="IconUpload">M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 9l5 -5l5 5 M12 4l0 12</StreamGeometry>
 
 </ResourceDictionary>

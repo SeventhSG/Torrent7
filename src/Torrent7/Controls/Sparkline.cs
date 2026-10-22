@@ -38,9 +38,12 @@ public sealed class Sparkline : Control
         if (history == null || history.Count < 2 || w <= 0 || h <= 0) return;
 
         var samples = history.Samples().ToArray();
+        // Nothing moving yet: draw nothing rather than a flat line in the corner.
+        if (samples.All(s => s.Down == 0 && (!ShowUpload || s.Up == 0))) return;
         // A floor of 64 KiB/s keeps a trickle from filling the whole box.
         var peak = Math.Max(64 * 1024, samples.Max(s => Math.Max(s.Down, ShowUpload ? s.Up : 0)));
-        var step = w / (history.Capacity - 1);
+        // Until the history is full the time scale stretches, so a fresh start still fills the box.
+        var step = w / (Math.Max(samples.Length, Math.Min(30, history.Capacity)) - 1);
         var x0 = w - (samples.Length - 1) * step;
 
         Point At(int i, long v) => new(x0 + i * step, h - 1 - (h - 2) * v / (double)peak);

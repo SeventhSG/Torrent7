@@ -7,529 +7,425 @@
         x:DataType="vm:MainViewModel"
         Title="Torrent7"
         Icon="avares://Torrent7/Assets/Torrent7.ico"
-        Width="1180" Height="760" MinWidth="820" MinHeight="520"
+        Width="1240" Height="780" MinWidth="980" MinHeight="600"
         WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="46"
         DragDrop.AllowDrop="True">
 
-    <Grid ColumnDefinitions="72,*">
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding AddFilesCommand}" />
+        <KeyBinding Gesture="Ctrl+L" Command="{Binding AddLinkCommand}" />
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding AddLinkCommand}" />
+        <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteCommand}" />
+        <KeyBinding Gesture="Delete" Command="{Binding RemoveSelectedCommand}" />
+        <KeyBinding Gesture="Ctrl+Enter" Command="{Binding OpenFolderSelectedCommand}" />
+    </Window.KeyBindings>
 
-        <!-- The rail -->
-        <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}"
+    <Window.Styles>
+        <!-- Narrow windows: the toolbar keeps its icons and drops its words. -->
+        <Style Selector="Border.compact Button.tool StackPanel > TextBlock">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="46,*,28" ColumnDefinitions="232,*">
+
+        <!-- Title bar, left: the app, over the sidebar -->
+        <Border Grid.Row="0" Grid.Column="0" x:Name="TitleLeft" Background="{StaticResource SidebarBrush}"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="16,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                <c:AppMark Width="22" Height="22" />
+                <TextBlock Text="Torrent7" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- Title bar, right: the toolbar -->
+        <Border Grid.Row="0" Grid.Column="1" x:Name="TitleRight" Background="{StaticResource BgBrush}"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="12,0,0,0">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                    <Button Classes="accent" Padding="10,0,8,0" AutomationProperties.Name="Add" ToolTip.Tip="Add a torrent (Ctrl+O, Ctrl+L, or Ctrl+V)">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <c:StrokeIcon Data="{StaticResource IconPlus}" Width="15" Height="15" />
+                            <TextBlock Text="Add" VerticalAlignment="Center" />
+                            <c:StrokeIcon Data="{StaticResource IconChevronDown}" Width="12" Height="12" Margin="2,1,0,0" />
+                        </StackPanel>
+                        <Button.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                <MenuItem Header="Torrent file..." InputGesture="Ctrl+O" Command="{Binding AddFilesCommand}">
+                                    <MenuItem.Icon><c:StrokeIcon Data="{StaticResource IconFile}" /></MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Magnet link or web link..." InputGesture="Ctrl+L" Command="{Binding AddLinkCommand}">
+                                    <MenuItem.Icon><c:StrokeIcon Data="{StaticResource IconMagnet}" /></MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Paste from clipboard" InputGesture="Ctrl+V" Command="{Binding PasteCommand}">
+                                    <MenuItem.Icon><c:StrokeIcon Data="{StaticResource IconClipboard}" /></MenuItem.Icon>
+                                </MenuItem>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" Margin="14,0,0,0" VerticalAlignment="Center"
+                            IsVisible="{Binding IsTransfers}">
+                    <Border Classes="vline" Height="20" Margin="0,0,10,0" />
+                    <Button Classes="tool" Command="{Binding ResumeSelectedCommand}" AutomationProperties.Name="Resume" ToolTip.Tip="Resume">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <c:StrokeIcon Data="{StaticResource IconPlay}" Width="15" Height="15" />
+                            <TextBlock Text="Resume" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="tool" Command="{Binding PauseSelectedCommand}" AutomationProperties.Name="Pause" ToolTip.Tip="Pause">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <c:StrokeIcon Data="{StaticResource IconPause}" Width="15" Height="15" />
+                            <TextBlock Text="Pause" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="tool" Command="{Binding RemoveSelectedCommand}" AutomationProperties.Name="Remove" ToolTip.Tip="Remove (Delete)">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <c:StrokeIcon Data="{StaticResource IconTrash}" Width="15" Height="15" />
+                            <TextBlock Text="Remove" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Border Classes="vline" Height="20" Margin="8,0" />
+                    <Button Classes="tool square" Command="{Binding OpenFolderSelectedCommand}" AutomationProperties.Name="Open folder" ToolTip.Tip="Open folder (Ctrl+Enter)">
+                        <c:StrokeIcon Data="{StaticResource IconFolderOpen}" Width="16" Height="16" />
+                    </Button>
+                    <Button Classes="tool square" AutomationProperties.Name="More actions" ToolTip.Tip="More" IsEnabled="{Binding HasSelection}">
+                        <c:StrokeIcon Data="{StaticResource IconDots}" Width="16" Height="16" />
+                        <Button.Flyout>
+                            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                <MenuItem Header="Start now, skip the queue" Command="{Binding ForceStartSelectedCommand}" />
+                                <MenuItem Header="Download in order" Command="{Binding ToggleSequentialCommand}" IsEnabled="{Binding ShowDetails}" />
+                                <Separator />
+                                <MenuItem Header="Move files to..." Command="{Binding MoveSelectedCommand}" IsEnabled="{Binding ShowDetails}" />
+                                <MenuItem Header="Check files again" Command="{Binding RecheckSelectedCommand}" />
+                                <MenuItem Header="Copy magnet link" Command="{Binding CopyMagnetSelectedCommand}" />
+                                <Separator />
+                                <MenuItem Header="Pause everything" Command="{Binding PauseAllCommand}" />
+                                <MenuItem Header="Resume everything" Command="{Binding ResumeAllCommand}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
+
+                <TextBox Grid.Column="2" x:Name="SearchBox" Classes="search" MaxWidth="260" MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0"
+                         Text="{Binding Search}" Watermark="Search transfers   Ctrl+F">
+                    <TextBox.InnerLeftContent>
+                        <c:StrokeIcon Data="{StaticResource IconSearch}" Width="14" Height="14" Margin="10,0,0,0" Foreground="{StaticResource TextFaintBrush}" />
+                    </TextBox.InnerLeftContent>
+                </TextBox>
+
+                <!-- Room for the window buttons Windows draws over the corner. -->
+                <Panel Grid.Column="3" x:Name="CaptionSpace" Width="138" />
+            </Grid>
+        </Border>
+
+        <!-- Sidebar -->
+        <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource SidebarBrush}"
                 BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
             <DockPanel>
-                <Panel DockPanel.Dock="Top" Height="64" ToolTip.Tip="Torrent7">
-                    <c:StrokeIcon Box="20" Width="30" Height="30" Data="{StaticResource MarkSeven}"
-                                  Stroke="{StaticResource AccentBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <c:StrokeIcon Box="20" Width="30" Height="30" Data="{StaticResource MarkTray}"
-                                  Stroke="{StaticResource TextDimBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Panel>
+                <!-- Live speed and the slow mode switch, pinned to the bottom -->
+                <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="16,14,16,14">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <c:StrokeIcon Data="{StaticResource IconDown}" Width="12" Height="12" Foreground="{StaticResource AccentBrush}" />
+                                    <TextBlock Classes="caption" Text="Download" />
+                                </StackPanel>
+                                <TextBlock Classes="num" FontSize="15" FontWeight="SemiBold" Text="{Binding DownRateText}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="1">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <c:StrokeIcon Data="{StaticResource IconUp}" Width="12" Height="12" Foreground="{StaticResource UpBrush}" />
+                                    <TextBlock Classes="caption" Text="Upload" />
+                                </StackPanel>
+                                <TextBlock Classes="num" FontSize="15" FontWeight="SemiBold" Text="{Binding UpRateText}" />
+                            </StackPanel>
+                        </Grid>
+                        <c:Sparkline Height="44" History="{Binding History}" Version="{Binding HistoryVersion}" />
+                        <TextBlock Classes="caption" Text="{Binding LimitText}" TextTrimming="CharacterEllipsis" />
+                        <Border Classes="hairline" Margin="0,2" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Slow mode" FontSize="13" />
+                                <TextBlock Classes="caption" Text="{Binding SlowText}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding SlowMode}" Margin="8,0,-10,0"
+                                          AutomationProperties.Name="Slow mode" ToolTip.Tip="Switch to the slow mode limits, for when someone else needs the line" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-                <StackPanel DockPanel.Dock="Top" Spacing="4" HorizontalAlignment="Center" Margin="0,8,0,0">
-                    <ToggleButton Classes="rail" AutomationProperties.Name="Transfers" Command="{Binding ShowTransfersCommand}"
-                                  IsChecked="{Binding Page, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Page.Transfers}}">
-                        <StackPanel Spacing="4">
-                            <c:StrokeIcon Data="{StaticResource IconList}" Width="18" Height="18" HorizontalAlignment="Center" />
-                            <TextBlock Text="Transfers" FontSize="10.5" HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton Classes="rail" AutomationProperties.Name="Speed test" Command="{Binding ShowSpeedTestCommand}"
-                                  IsChecked="{Binding Page, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Page.SpeedTest}}">
-                        <StackPanel Spacing="4">
-                            <c:StrokeIcon Data="{StaticResource IconGauge}" Width="18" Height="18" HorizontalAlignment="Center" />
-                            <TextBlock Text="Speed test" FontSize="10.5" HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                    <ToggleButton Classes="rail" AutomationProperties.Name="Settings" Command="{Binding ShowSettingsCommand}"
-                                  IsChecked="{Binding Page, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Page.Settings}}">
-                        <StackPanel Spacing="4">
-                            <c:StrokeIcon Data="{StaticResource IconSettings}" Width="18" Height="18" HorizontalAlignment="Center" />
-                            <TextBlock Text="Settings" FontSize="10.5" HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
+                <ScrollViewer>
+                <StackPanel Margin="10,14,10,10" Spacing="2">
+                    <TextBlock Classes="section" Text="TRANSFERS" Margin="10,0,0,4" />
+                    <ListBox Classes="nav" ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem" x:DataType="vm:NavItem">
+                                <Setter Property="IsVisible" Value="{Binding IsShown}" />
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavItem">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <c:StrokeIcon Classes="navicon" Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center"
+                                                  Classes.danger="{Binding IsDanger}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Classes="num faint" FontSize="12" Text="{Binding CountText}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Classes="section" Text="TOOLS" Margin="10,18,0,4" />
+                    <ListBox Classes="nav" ItemsSource="{Binding Tools}" SelectedItem="{Binding SelectedTool}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:NavItem">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <c:StrokeIcon Classes="navicon" Data="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </StackPanel>
-                <Panel />
+                </ScrollViewer>
             </DockPanel>
         </Border>
 
-        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto">
+        <!-- Content -->
+        <Panel Grid.Row="1" Grid.Column="1">
 
-            <!-- Top bar: add anything, live speed, slow mode -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="20,16,20,12">
-                <TextBox Grid.Column="0" Text="{Binding AddText}" MinHeight="40"
-                         Watermark="Paste a magnet link, an info hash or a link to a .torrent, then press Enter"
-                         IsEnabled="{Binding !IsAdding}">
-                    <TextBox.InnerLeftContent>
-                        <c:StrokeIcon Data="{StaticResource IconMagnet}" Margin="12,0,4,0" Foreground="{StaticResource TextFaintBrush}" />
-                    </TextBox.InnerLeftContent>
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Enter" Command="{Binding AddFromBoxCommand}" />
-                    </TextBox.KeyBindings>
-                </TextBox>
-                <Button Grid.Column="1" Classes="accent" AutomationProperties.Name="Add" Margin="8,0,0,0" MinHeight="40" Padding="16,0"
-                        Command="{Binding AddFromBoxCommand}" ToolTip.Tip="Add what is in the box, or open a .torrent file when it is empty">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <c:StrokeIcon Data="{StaticResource IconPlus}" />
-                        <TextBlock Text="Add" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-                <Button Grid.Column="2" AutomationProperties.Name="Open file" Margin="8,0,0,0" MinHeight="40" Command="{Binding AddFilesCommand}"
-                        ToolTip.Tip="Open .torrent files">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <c:StrokeIcon Data="{StaticResource IconFile}" />
-                        <TextBlock Text="Open file" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Button>
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" Margin="16,0,0,0">
-                    <Border Classes="surface" Padding="12,4" Height="40">
-                        <Grid ColumnDefinitions="96,Auto">
-                            <c:Sparkline Grid.Column="0" History="{Binding History}" Version="{Binding HistoryVersion}" Height="30" />
-                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center" MinWidth="104">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <c:StrokeIcon Data="{StaticResource IconDown}" Width="12" Height="12" Foreground="{StaticResource AccentBrush}" />
-                                    <TextBlock Classes="mono accent" FontSize="12" Text="{Binding DownRateText}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <c:StrokeIcon Data="{StaticResource IconUp}" Width="12" Height="12" Foreground="{StaticResource UpBrush}" />
-                                    <TextBlock Classes="mono" FontSize="12" Foreground="{StaticResource UpBrush}" Text="{Binding UpRateText}" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                        <ToolTip.Tip>
-                            <StackPanel>
-                                <TextBlock Text="Total speed, last two minutes. Amber is download." />
-                                <TextBlock Text="{Binding DownLimitText}" Classes="dim" />
-                                <TextBlock Text="{Binding UpLimitText}" Classes="dim" />
-                            </StackPanel>
-                        </ToolTip.Tip>
-                    </Border>
-                    <ToggleButton Classes="switch" Classes.active="{Binding SlowActive}" Height="40" Padding="12,0" IsChecked="{Binding SlowMode}"
-                                  ToolTip.Tip="Switch to the slow mode limits from Settings, for when someone else needs the line">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <c:StrokeIcon Data="{StaticResource IconClock}" />
-                            <TextBlock Text="{Binding SlowText}" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </ToggleButton>
-                </StackPanel>
-            </Grid>
-
-            <!-- Clipboard offer -->
-            <Border Grid.Row="1" Margin="20,0,20,12" Padding="14,8" CornerRadius="{StaticResource SurfaceRadius}"
-                    Background="{StaticResource AccentSoftBrush}"
-                    IsVisible="{Binding ClipboardOffer, Converter={x:Static ObjectConverters.IsNotNull}}">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                    <c:StrokeIcon Grid.Column="0" Data="{StaticResource IconMagnet}" Foreground="{StaticResource AccentBrush}" Margin="0,0,10,0" />
-                    <TextBlock Grid.Column="1" Text="{Binding ClipboardOfferText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                    <Button Grid.Column="2" Classes="accent" Content="Add it" Command="{Binding AcceptClipboardCommand}" Margin="8,0" />
-                    <Button Grid.Column="3" Classes="ghost" Content="Not now" Command="{Binding DismissClipboardCommand}" />
+            <!-- Transfers -->
+            <Grid x:Name="TransfersGrid" IsVisible="{Binding IsTransfers}" RowDefinitions="Auto,Auto,*,Auto,260">
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="20,14,20,10">
+                    <TextBlock Classes="heading" FontSize="15" Text="{Binding ListTitle}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="caption num" Margin="10,2,0,0" VerticalAlignment="Center"
+                               Text="{Binding Rows.Count, StringFormat='{}{0} shown'}" />
+                    <TextBlock Grid.Column="2" Classes="caption" Text="{Binding SelectionText}" VerticalAlignment="Center" />
                 </Grid>
-            </Border>
 
-            <!-- Pages -->
-            <Panel Grid.Row="2">
-
-                <!-- Transfers -->
-                <Grid IsVisible="{Binding IsTransfers}" RowDefinitions="Auto,*,Auto,Auto">
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,0,20,10">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.All}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.All}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="All" /><TextBlock Classes="faint" Text="{Binding CountAll}" /></StackPanel>
-                            </RadioButton>
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.Active}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.Active}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Downloading" /><TextBlock Classes="faint" Text="{Binding CountActive}" /></StackPanel>
-                            </RadioButton>
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.Seeding}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.Seeding}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Seeding" /><TextBlock Classes="faint" Text="{Binding CountSeeding}" /></StackPanel>
-                            </RadioButton>
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.Paused}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.Paused}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Paused" /><TextBlock Classes="faint" Text="{Binding CountPaused}" /></StackPanel>
-                            </RadioButton>
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.Done}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.Done}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Done" /><TextBlock Classes="faint" Text="{Binding CountDone}" /></StackPanel>
-                            </RadioButton>
-                            <RadioButton Classes="chip" GroupName="filter" Command="{Binding SetFilterCommand}" CommandParameter="{x:Static vm:Filter.Errors}"
-                                         IsVisible="{Binding HasErrors}"
-                                         IsChecked="{Binding Filter, Mode=OneWay, Converter={x:Static v:EnumEqualsConverter.Instance}, ConverterParameter={x:Static vm:Filter.Errors}}">
-                                <StackPanel Orientation="Horizontal" Spacing="6"><TextBlock Text="Errors" Classes="danger" /><TextBlock Classes="faint" Text="{Binding CountErrors}" /></StackPanel>
-                            </RadioButton>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                            <TextBox Text="{Binding Search}" Watermark="Filter by name" Width="200">
-                                <TextBox.InnerLeftContent>
-                                    <c:StrokeIcon Data="{StaticResource IconSearch}" Width="14" Height="14" Margin="10,0,2,0" Foreground="{StaticResource TextFaintBrush}" />
-                                </TextBox.InnerLeftContent>
-                            </TextBox>
-                            <Button Classes="ghost icon" AutomationProperties.Name="Pause everything" Command="{Binding PauseAllCommand}" ToolTip.Tip="Pause everything">
-                                <c:StrokeIcon Data="{StaticResource IconPause}" />
-                            </Button>
-                            <Button Classes="ghost icon" AutomationProperties.Name="Resume everything" Command="{Binding ResumeAllCommand}" ToolTip.Tip="Resume everything">
-                                <c:StrokeIcon Data="{StaticResource IconPlay}" />
-                            </Button>
-                        </StackPanel>
+                <!-- A magnet the user just copied -->
+                <Border Grid.Row="1" Margin="20,0,20,10" Padding="12,0,6,0" Height="40" CornerRadius="{StaticResource PanelRadius}"
+                        Background="{StaticResource AccentSoftBrush}" BorderBrush="#4A3820" BorderThickness="1"
+                        IsVisible="{Binding ClipboardOffer, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <c:StrokeIcon Data="{StaticResource IconMagnet}" Foreground="{StaticResource AccentBrush}" Width="15" Height="15" Margin="0,0,10,0" />
+                        <TextBlock Grid.Column="1" Text="{Binding ClipboardOfferText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        <Button Grid.Column="2" Classes="accent" Height="28" Content="Add it" Command="{Binding AcceptClipboardCommand}" Margin="8,0,4,0" />
+                        <Button Grid.Column="3" Classes="tool" Height="28" Content="Dismiss" Command="{Binding DismissClipboardCommand}" />
                     </Grid>
+                </Border>
 
-                    <!-- The list, its empty state, and the no-match state -->
-                    <Panel Grid.Row="1">
-                        <ListBox Classes="rows" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}" Margin="12,0,12,0">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate x:DataType="vm:TorrentRowViewModel">
-                                    <Border Padding="12,10" Background="Transparent">
-                                        <Border.ContextFlyout>
-                                            <MenuFlyout>
-                                                <MenuItem Header="Pause" IsVisible="{Binding CanPause}" Command="{Binding Owner.TogglePauseCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Resume" IsVisible="{Binding !CanPause}" Command="{Binding Owner.TogglePauseCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Start now, skip the queue" Command="{Binding Owner.ForceStartCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Download in order" Command="{Binding Owner.ToggleSequentialCommand}" CommandParameter="{Binding}">
-                                                    <MenuItem.Icon>
-                                                        <c:StrokeIcon Data="{StaticResource IconCheck}" IsVisible="{Binding Sequential}" />
-                                                    </MenuItem.Icon>
-                                                </MenuItem>
-                                                <Separator />
-                                                <MenuItem Header="Open folder" Command="{Binding Owner.OpenFolderCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Move files to..." Command="{Binding Owner.MoveCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Check files again" Command="{Binding Owner.RecheckCommand}" CommandParameter="{Binding}" />
-                                                <MenuItem Header="Copy magnet link" Command="{Binding Owner.CopyMagnetCommand}" CommandParameter="{Binding}" />
-                                                <Separator />
-                                                <MenuItem Header="Remove..." Classes="danger" Command="{Binding Owner.RemoveCommand}" CommandParameter="{Binding}" />
-                                            </MenuFlyout>
-                                        </Border.ContextFlyout>
-                                        <Grid ColumnDefinitions="*,Auto,Auto">
-                                            <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="13.5" TextTrimming="CharacterEllipsis" />
-                                                <ProgressBar Value="{Binding Progress}" Maximum="100"
-                                                             Classes.done="{Binding IsDone}" Classes.error="{Binding IsError}" Classes.paused="{Binding IsIdle}" />
-                                                <StackPanel Orientation="Horizontal" Spacing="14">
-                                                    <TextBlock FontSize="12" Text="{Binding StatusText}" Classes="dim" Classes.danger="{Binding IsError}" />
-                                                    <TextBlock FontSize="12" Text="{Binding ProgressText}" Classes="dim mono" />
-                                                    <TextBlock FontSize="12" Text="{Binding SizeText}" Classes="faint" />
-                                                    <TextBlock FontSize="12" Text="{Binding PeersText}" Classes="faint" />
-                                                    <TextBlock FontSize="12" Text="{Binding EtaText}" Classes="faint" />
-                                                    <TextBlock FontSize="12" Text="in order" Classes="accent" IsVisible="{Binding Sequential}"
-                                                               ToolTip.Tip="Downloading front to back, so media can play before it finishes" />
-                                                </StackPanel>
-                                                <TextBlock FontSize="12" Classes="danger" Text="{Binding ErrorText}" TextWrapping="Wrap"
-                                                           IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                            </StackPanel>
-
-                                            <Grid Grid.Column="1" ColumnDefinitions="72,Auto" Margin="16,0,8,0" IsVisible="{Binding ShowSpeeds}" VerticalAlignment="Center">
-                                                <c:Sparkline Grid.Column="0" Height="26" ShowUpload="False" History="{Binding Entry.History}" Version="{Binding HistoryVersion}" />
-                                                <StackPanel Grid.Column="1" Margin="10,0,0,0" MinWidth="92">
-                                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <c:StrokeIcon Data="{StaticResource IconDown}" Width="11" Height="11" Foreground="{StaticResource AccentBrush}" />
-                                                        <TextBlock Classes="mono accent" FontSize="12" Text="{Binding DownText}" />
-                                                    </StackPanel>
-                                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <c:StrokeIcon Data="{StaticResource IconUp}" Width="11" Height="11" Foreground="{StaticResource UpBrush}" />
-                                                        <TextBlock Classes="mono" FontSize="12" Foreground="{StaticResource UpBrush}" Text="{Binding UpText}" />
-                                                    </StackPanel>
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-                                                <Button Classes="ghost icon" AutomationProperties.Name="Pause or resume" Command="{Binding Owner.TogglePauseCommand}" CommandParameter="{Binding}">
-                                                    <Panel>
-                                                        <c:StrokeIcon Data="{StaticResource IconPause}" IsVisible="{Binding CanPause}" />
-                                                        <c:StrokeIcon Data="{StaticResource IconPlay}" IsVisible="{Binding !CanPause}" />
-                                                    </Panel>
-                                                    <ToolTip.Tip>Pause or resume</ToolTip.Tip>
-                                                </Button>
-                                                <Button Classes="ghost icon" AutomationProperties.Name="Open folder" Command="{Binding Owner.OpenFolderCommand}" CommandParameter="{Binding}" ToolTip.Tip="Open folder">
-                                                    <c:StrokeIcon Data="{StaticResource IconFolderOpen}" />
-                                                </Button>
-                                                <Button Classes="ghost icon" AutomationProperties.Name="More actions" Click="OnMoreClick" ToolTip.Tip="More">
-                                                    <TextBlock Text="..." FontWeight="Bold" Margin="0,-6,0,0" HorizontalAlignment="Center" />
-                                                </Button>
-                                            </StackPanel>
+                <Panel Grid.Row="2">
+                    <DataGrid x:Name="Table" SelectionMode="Extended" Margin="8,0,8,0" HorizontalScrollBarVisibility="Disabled"
+                              AutomationProperties.Name="Transfers">
+                        <DataGrid.Styles>
+                            <Style Selector="DataGridColumnHeader">
+                                <Setter Property="ContextFlyout" Value="{DynamicResource ColumnsMenu}" />
+                            </Style>
+                        </DataGrid.Styles>
+                        <DataGrid.KeyBindings>
+                            <KeyBinding Gesture="Space" Command="{Binding TogglePauseSelectedCommand}" />
+                        </DataGrid.KeyBindings>
+                        <DataGrid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuItem Header="Resume" Command="{Binding ResumeSelectedCommand}" />
+                                <MenuItem Header="Pause" Command="{Binding PauseSelectedCommand}" />
+                                <MenuItem Header="Start now, skip the queue" Command="{Binding ForceStartSelectedCommand}" />
+                                <MenuItem Header="Download in order" Command="{Binding ToggleSequentialCommand}" IsEnabled="{Binding ShowDetails}" />
+                                <Separator />
+                                <MenuItem Header="Open folder" Command="{Binding OpenFolderSelectedCommand}" />
+                                <MenuItem Header="Move files to..." Command="{Binding MoveSelectedCommand}" IsEnabled="{Binding ShowDetails}" />
+                                <MenuItem Header="Check files again" Command="{Binding RecheckSelectedCommand}" />
+                                <MenuItem Header="Copy magnet link" Command="{Binding CopyMagnetSelectedCommand}" />
+                                <Separator />
+                                <MenuItem Header="Remove..." InputGesture="Delete" Classes="danger" Command="{Binding RemoveSelectedCommand}" />
+                            </MenuFlyout>
+                        </DataGrid.ContextFlyout>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Name" Tag="Name" Width="*" MinWidth="180" SortMemberPath="Name">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <Grid ColumnDefinitions="Auto,*" Margin="12,0">
+                                            <c:StrokeIcon Data="{Binding StateIcon}" Foreground="{Binding StateBrush}" Width="15" Height="15" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
                                         </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Size" Width="84" SortMemberPath="SizeBytes">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Size" HorizontalAlignment="Right" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num dim" Text="{Binding SizeText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Progress" Tag="Progress" Width="140" SortMemberPath="Progress">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <Grid ColumnDefinitions="*,46" Margin="12,0" VerticalAlignment="Center">
+                                            <c:Meter Value="{Binding Progress}" Fill="{Binding MeterBrush}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Classes="num dim" FontSize="12" Text="{Binding ProgressText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Status" Tag="Status" Width="128" SortMemberPath="StatusText">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="dim" Classes.danger="{Binding IsError}" Text="{Binding StatusText}" VerticalAlignment="Center" Margin="12,0"
+                                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ErrorText}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Down" Width="88" SortMemberPath="DownRate">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Down" HorizontalAlignment="Right" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num accent" Text="{Binding DownText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Up" Width="84" SortMemberPath="UpRate">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Up" HorizontalAlignment="Right" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num up" Text="{Binding UpText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Time left" Width="92" SortMemberPath="EtaSeconds">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Time left" HorizontalAlignment="Right" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num dim" Text="{Binding EtaText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Peers" Width="76" SortMemberPath="Peers">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Peers" HorizontalAlignment="Right" ToolTip.Tip="Seeds / peers connected" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num dim" Text="{Binding PeersText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Tag="Ratio" Width="64" SortMemberPath="Ratio">
+                                <DataGridTemplateColumn.Header><TextBlock Text="Ratio" HorizontalAlignment="Right" /></DataGridTemplateColumn.Header>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num dim" Text="{Binding RatioText}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Added" Tag="Added" Width="124" SortMemberPath="Added">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:TorrentRowViewModel">
+                                        <TextBlock Classes="num faint" Text="{Binding AddedText}" VerticalAlignment="Center" Margin="12,0" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
 
-                        <StackPanel IsVisible="{Binding IsEmpty}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="440">
-                            <Panel Width="56" Height="56" HorizontalAlignment="Left">
-                                <c:StrokeIcon Box="20" Width="56" Height="56" Data="{StaticResource MarkSeven}" Stroke="{StaticResource AccentBrush}" />
-                                <c:StrokeIcon Box="20" Width="56" Height="56" Data="{StaticResource MarkTray}" Stroke="{StaticResource TextFaintBrush}" />
-                            </Panel>
-                            <TextBlock Classes="h1" Text="Nothing downloading yet" />
-                            <TextBlock Classes="dim" TextWrapping="Wrap"
-                                       Text="Paste a magnet link in the box above, drop a .torrent file anywhere in this window, or open one from disk." />
-                            <Button Classes="accent" AutomationProperties.Name="Open a .torrent file" HorizontalAlignment="Left" Margin="0,6,0,0" Command="{Binding AddFilesCommand}">
+                    <!-- First run -->
+                    <StackPanel IsVisible="{Binding IsEmpty}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="420" Margin="0,0,0,40">
+                        <c:AppMark Width="56" Height="56" HorizontalAlignment="Center" />
+                        <TextBlock Classes="title" Text="Add your first torrent" HorizontalAlignment="Center" />
+                        <TextBlock Classes="dim" TextWrapping="Wrap" TextAlignment="Center"
+                                   Text="Drop a .torrent file anywhere on this window, paste a magnet link, or pick one below." />
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="0,4,0,0">
+                            <Button Classes="accent" Command="{Binding AddFilesCommand}" AutomationProperties.Name="Open a torrent file">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <c:StrokeIcon Data="{StaticResource IconFile}" />
-                                    <TextBlock Text="Open a .torrent file" VerticalAlignment="Center" />
+                                    <c:StrokeIcon Data="{StaticResource IconFile}" Width="15" Height="15" />
+                                    <TextBlock Text="Open torrent file" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding AddLinkCommand}" AutomationProperties.Name="Add a magnet link">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <c:StrokeIcon Data="{StaticResource IconMagnet}" Width="15" Height="15" />
+                                    <TextBlock Text="Add magnet link" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-
-                        <TextBlock IsVisible="{Binding NothingMatches}" Classes="dim" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   Text="No torrents match this filter." />
-                    </Panel>
-
-                    <GridSplitter Grid.Row="2" Height="6" Background="Transparent" ResizeDirection="Rows" IsVisible="{Binding HasSelection}" />
-
-                    <!-- Details of the selected torrent -->
-                    <Border Grid.Row="3" Classes="surface" Margin="20,0,20,12" Height="270" IsVisible="{Binding HasSelection}">
-                        <TabControl SelectedIndex="{Binding DetailTab}" Padding="0" Margin="8,0,8,0">
-
-                            <TabItem Header="Files">
-                                <Grid RowDefinitions="Auto,*">
-                                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,6">
-                                        <Button Classes="ghost" Content="Select all" Command="{Binding SelectAllFilesCommand}">
-                                            <Button.CommandParameter><x:Boolean>True</x:Boolean></Button.CommandParameter>
-                                        </Button>
-                                        <Button Classes="ghost" Content="Select none" Command="{Binding SelectAllFilesCommand}">
-                                            <Button.CommandParameter><x:Boolean>False</x:Boolean></Button.CommandParameter>
-                                        </Button>
-                                        <TextBlock Classes="faint" FontSize="12" VerticalAlignment="Center" Margin="8,0"
-                                                   Text="Unticked files are skipped. Ticking one later fetches it." />
-                                    </StackPanel>
-                                    <TextBlock Grid.Row="1" Classes="dim" Margin="8" Text="{Binding FilesEmptyText}" />
-                                    <ListBox Grid.Row="1" Classes="compact" ItemsSource="{Binding Files}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:FileRowViewModel">
-                                                <Grid ColumnDefinitions="Auto,*,90,140,110,Auto">
-                                                    <CheckBox Grid.Column="0" IsChecked="{Binding Include}" MinWidth="0" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding Path}" VerticalAlignment="Center" TextTrimming="LeadingCharacterEllipsis" ToolTip.Tip="{Binding Path}" />
-                                                    <TextBlock Grid.Column="2" Text="{Binding SizeText}" Classes="dim mono" FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                                                    <StackPanel Grid.Column="3" Margin="16,0,8,0" VerticalAlignment="Center" Spacing="3">
-                                                        <ProgressBar Value="{Binding Progress}" Maximum="100" />
-                                                        <TextBlock Text="{Binding ProgressText}" Classes="faint mono" FontSize="11" />
-                                                    </StackPanel>
-                                                    <ComboBox Grid.Column="4" ItemsSource="{x:Static vm:FileRowViewModel.PriorityNames}" SelectedIndex="{Binding PriorityIndex}"
-                                                              IsEnabled="{Binding Include}" Width="100" VerticalAlignment="Center" />
-                                                    <Button Grid.Column="5" Classes="ghost icon" AutomationProperties.Name="Open this file" Margin="4,0,0,0" ToolTip.Tip="Open this file"
-                                                            Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding}">
-                                                        <c:StrokeIcon Data="{StaticResource IconExternal}" />
-                                                    </Button>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </Grid>
-                            </TabItem>
-
-                            <TabItem Header="Peers">
-                                <Grid RowDefinitions="Auto,*" Margin="8,6">
-                                    <Grid ColumnDefinitions="2*,2*,*,*,*,2*" Margin="0,0,0,6">
-                                        <TextBlock Grid.Column="0" Classes="label" Text="Address" />
-                                        <TextBlock Grid.Column="1" Classes="label" Text="Client" />
-                                        <TextBlock Grid.Column="2" Classes="label" Text="Down" />
-                                        <TextBlock Grid.Column="3" Classes="label" Text="Up" />
-                                        <TextBlock Grid.Column="4" Classes="label" Text="Has" />
-                                        <TextBlock Grid.Column="5" Classes="label" Text="Notes" />
-                                    </Grid>
-                                    <ScrollViewer Grid.Row="1">
-                                        <ItemsControl ItemsSource="{Binding Peers}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:PeerRow">
-                                                    <Grid ColumnDefinitions="2*,2*,*,*,*,2*" Margin="0,3">
-                                                        <TextBlock Grid.Column="0" Classes="mono" FontSize="12" Text="{Binding Address}" TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Grid.Column="1" FontSize="12" Text="{Binding Client}" TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Grid.Column="2" Classes="mono accent" FontSize="12" Text="{Binding Down}" />
-                                                        <TextBlock Grid.Column="3" Classes="mono" FontSize="12" Foreground="{StaticResource UpBrush}" Text="{Binding Up}" />
-                                                        <TextBlock Grid.Column="4" Classes="mono dim" FontSize="12" Text="{Binding Have}" />
-                                                        <TextBlock Grid.Column="5" Classes="faint" FontSize="12" Text="{Binding Flags}" />
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Grid>
-                            </TabItem>
-
-                            <TabItem Header="Trackers">
-                                <Grid RowDefinitions="Auto,*" Margin="8,6">
-                                    <Grid ColumnDefinitions="4*,*,*,*,2*" Margin="0,0,0,6">
-                                        <TextBlock Grid.Column="0" Classes="label" Text="Tracker" />
-                                        <TextBlock Grid.Column="1" Classes="label" Text="Status" />
-                                        <TextBlock Grid.Column="2" Classes="label" Text="Seeds" />
-                                        <TextBlock Grid.Column="3" Classes="label" Text="Peers" />
-                                        <TextBlock Grid.Column="4" Classes="label" Text="Message" />
-                                    </Grid>
-                                    <ScrollViewer Grid.Row="1">
-                                        <ItemsControl ItemsSource="{Binding Trackers}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate x:DataType="vm:TrackerRow">
-                                                    <Grid ColumnDefinitions="4*,*,*,*,2*" Margin="0,3">
-                                                        <TextBlock Grid.Column="0" Classes="mono" FontSize="12" Text="{Binding Url}" TextTrimming="CharacterEllipsis" />
-                                                        <TextBlock Grid.Column="1" FontSize="12" Classes="dim" Text="{Binding State}" />
-                                                        <TextBlock Grid.Column="2" FontSize="12" Classes="mono" Text="{Binding Seeds}" />
-                                                        <TextBlock Grid.Column="3" FontSize="12" Classes="mono" Text="{Binding Peers}" />
-                                                        <TextBlock Grid.Column="4" FontSize="12" Classes="faint" Text="{Binding Message}" TextTrimming="CharacterEllipsis" />
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Grid>
-                            </TabItem>
-
-                            <TabItem Header="Info">
-                                <ScrollViewer>
-                                    <Grid ColumnDefinitions="*,24,*" Margin="8,10">
-                                        <Grid Grid.Column="0" ColumnDefinitions="110,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
-                                            <TextBlock Grid.Row="0" Classes="label" Text="Saved in" />
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="{Binding InfoSaveDir}" TextTrimming="LeadingCharacterEllipsis" MaxWidth="300" ToolTip.Tip="{Binding InfoSaveDir}" />
-                                                <Button Classes="ghost" Padding="6,0" MinHeight="20" Content="Open" Command="{Binding OpenSaveDirCommand}" />
-                                            </StackPanel>
-                                            <TextBlock Grid.Row="1" Classes="label" Text="Size" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding InfoSize}" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="2" Classes="label" Text="Pieces" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding InfoPieces}" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="3" Classes="label" Text="Transferred" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding InfoTransferred}" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="4" Classes="label" Text="Added" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding InfoAdded}" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="5" Classes="label" Text="Finished" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding InfoCompleted}" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="6" Classes="label" Text="Info hash" Margin="0,6,0,0" />
-                                            <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
-                                                <TextBlock Classes="mono" FontSize="12" Text="{Binding InfoHash}" TextTrimming="CharacterEllipsis" MaxWidth="300" />
-                                                <Button Classes="ghost" Padding="6,0" MinHeight="20" Content="Copy" Command="{Binding CopyHashCommand}" />
-                                            </StackPanel>
-                                            <TextBlock Grid.Row="7" Classes="label" Text="Type" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding InfoPrivate}" TextWrapping="Wrap" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="8" Classes="label" Text="Comment" Margin="0,6,0,0" />
-                                            <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding InfoComment}" TextWrapping="Wrap" Margin="0,6,0,0" />
-                                        </Grid>
-
-                                        <StackPanel Grid.Column="2" Spacing="8">
-                                            <TextBlock Classes="h2" Text="This torrent only" />
-                                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
-                                                <TextBlock Classes="label" Text="Download limit, KiB/s" VerticalAlignment="Center" Margin="0,0,12,0" />
-                                                <NumericUpDown Grid.Column="1" Value="{Binding DetailDownLimit}" Minimum="0" Maximum="10000000" Increment="256" />
-                                                <TextBlock Grid.Row="1" Classes="label" Text="Upload limit, KiB/s" VerticalAlignment="Center" Margin="0,6,12,0" />
-                                                <NumericUpDown Grid.Row="1" Grid.Column="1" Margin="0,6,0,0" Value="{Binding DetailUpLimit}" Minimum="0" Maximum="10000000" Increment="64" />
-                                            </Grid>
-                                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                                <Button Content="Set limits" Command="{Binding ApplyDetailLimitsCommand}" />
-                                                <TextBlock Classes="faint" FontSize="12" Text="0 means no limit" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                            <ToggleSwitch IsChecked="{Binding DetailSequential}" OnContent="Download in order" OffContent="Download in order" />
-                                            <TextBlock Classes="faint" FontSize="12" TextWrapping="Wrap"
-                                                       Text="Fetches pieces front to back so a video can start playing early. Slower on torrents with few seeds." />
-                                            <TextBlock Classes="danger" TextWrapping="Wrap" Text="{Binding InfoError}"
-                                                       IsVisible="{Binding InfoError, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </ScrollViewer>
-                            </TabItem>
-                        </TabControl>
-                    </Border>
-                </Grid>
-
-                <!-- Speed test -->
-                <ScrollViewer IsVisible="{Binding IsSpeedTest}">
-                    <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="884" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel Margin="32,8,32,32" Spacing="16">
-                        <TextBlock Classes="h1" Text="Speed test" />
-                        <TextBlock Classes="dim" TextWrapping="Wrap" Text="{Binding SpeedTest.PhaseText}" MaxWidth="640" HorizontalAlignment="Left" />
-
-                        <Grid ColumnDefinitions="*,16,*,16,*">
-                            <Border Grid.Column="0" Classes="surface" Padding="18,14">
-                                <StackPanel Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <c:StrokeIcon Data="{StaticResource IconDown}" Width="14" Height="14" Foreground="{StaticResource AccentBrush}" />
-                                        <TextBlock Classes="label" Text="Download" />
-                                    </StackPanel>
-                                    <TextBlock FontFamily="{StaticResource DisplayFont}" FontSize="34" FontWeight="SemiBold" Classes="accent"
-                                               Text="{Binding SpeedTest.DownText}" MinHeight="44" />
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="2" Classes="surface" Padding="18,14">
-                                <StackPanel Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <c:StrokeIcon Data="{StaticResource IconUp}" Width="14" Height="14" Foreground="{StaticResource UpBrush}" />
-                                        <TextBlock Classes="label" Text="Upload" />
-                                    </StackPanel>
-                                    <TextBlock FontFamily="{StaticResource DisplayFont}" FontSize="34" FontWeight="SemiBold"
-                                               Text="{Binding SpeedTest.UpText}" MinHeight="44" />
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="4" Classes="surface" Padding="18,14">
-                                <StackPanel Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <c:StrokeIcon Data="{StaticResource IconClock}" Width="14" Height="14" />
-                                        <TextBlock Classes="label" Text="Latency" />
-                                    </StackPanel>
-                                    <TextBlock FontFamily="{StaticResource DisplayFont}" FontSize="34" FontWeight="SemiBold"
-                                               Text="{Binding SpeedTest.PingText}" MinHeight="44" />
-                                    <TextBlock Classes="faint" FontSize="12" Text="{Binding SpeedTest.JitterText}" />
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
-                        <Border Classes="surface" Padding="12" Height="120" IsVisible="{Binding SpeedTest.ShowChart}">
-                            <c:Sparkline History="{Binding SpeedTest.Live}" Version="{Binding SpeedTest.HistoryVersion}" />
-                        </Border>
-                        <ProgressBar Value="{Binding SpeedTest.PhaseProgress}" Maximum="100" IsVisible="{Binding SpeedTest.IsRunning}" />
-
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Button Classes="accent" AutomationProperties.Name="Run speed test" MinHeight="40" Padding="20,0" Command="{Binding SpeedTest.RunCommand}">
-                                <Panel>
-                                    <TextBlock Text="Run speed test" IsVisible="{Binding !SpeedTest.IsRunning}" />
-                                    <TextBlock Text="Stop" IsVisible="{Binding SpeedTest.IsRunning}" />
-                                </Panel>
-                            </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="18" HorizontalAlignment="Center" Margin="0,8,0,0">
+                            <TextBlock Classes="caption" Text="Ctrl+O  open file" />
+                            <TextBlock Classes="caption" Text="Ctrl+L  add link" />
+                            <TextBlock Classes="caption" Text="Ctrl+V  paste" />
                         </StackPanel>
-                        <TextBlock Classes="danger" TextWrapping="Wrap" Text="{Binding SpeedTest.ErrorText}"
-                                   IsVisible="{Binding SpeedTest.ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}" />
-
-                        <Border Classes="surface" Padding="18,14" IsVisible="{Binding SpeedTest.HasResult}">
-                            <StackPanel Spacing="8">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <c:StrokeIcon Data="{StaticResource IconBolt}" Foreground="{StaticResource AccentBrush}" />
-                                    <TextBlock Classes="h2" Text="Tune Torrent7 to this line" />
-                                </StackPanel>
-                                <TextBlock TextWrapping="Wrap" Classes="dim" Text="{Binding SpeedTest.SuggestionText}" />
-                                <Button HorizontalAlignment="Left" Content="Apply these settings" Command="{Binding SpeedTest.ApplySuggestionsCommand}" />
-                            </StackPanel>
-                        </Border>
                     </StackPanel>
-                    </Grid>
-                </ScrollViewer>
 
-                <!-- Settings -->
-                <Panel IsVisible="{Binding IsSettings}">
-                    <v:SettingsView DataContext="{Binding Settings}" />
+                    <StackPanel IsVisible="{Binding NothingMatches}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6" Margin="0,0,0,40">
+                        <TextBlock Classes="heading" Text="Nothing here" HorizontalAlignment="Center" />
+                        <TextBlock Classes="caption" Text="No transfers match this view." HorizontalAlignment="Center" />
+                    </StackPanel>
                 </Panel>
 
-                <!-- Drop target, shown while a file is dragged over the window -->
-                <Border x:Name="DropOverlay" IsVisible="False" Margin="20" CornerRadius="{StaticResource SurfaceRadius}"
-                        Background="#E6100F0D" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                        <c:StrokeIcon Data="{StaticResource IconDown}" Width="32" Height="32" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" />
-                        <TextBlock Classes="h1" Text="Drop to add" HorizontalAlignment="Center" />
-                    </StackPanel>
+                <GridSplitter Grid.Row="3" Height="5" ResizeDirection="Rows" IsVisible="{Binding ShowDetails}" Background="Transparent" />
+
+                <!-- Details of the selected torrent -->
+                <Border Grid.Row="4" x:Name="DetailsPanel" IsVisible="{Binding ShowDetails}" Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+                    <v:DetailsView />
                 </Border>
+            </Grid>
+
+            <!-- Speed test and settings -->
+            <Panel IsVisible="{Binding IsSpeedTest}">
+                <v:SpeedTestView DataContext="{Binding SpeedTest}" />
+            </Panel>
+            <Panel IsVisible="{Binding IsSettings}">
+                <v:SettingsView DataContext="{Binding Settings}" />
             </Panel>
 
-            <!-- Status bar -->
-            <Border Grid.Row="3" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="20,7">
-                <StackPanel Orientation="Horizontal" Spacing="22">
-                    <TextBlock Classes="faint" FontSize="12" Text="{Binding DhtText}" />
-                    <TextBlock Classes="faint" FontSize="12" Text="{Binding PortText}" />
-                    <TextBlock Classes="faint" FontSize="12" Text="{Binding ConnectionsText}" />
-                    <TextBlock Classes="faint" FontSize="12" Text="{Binding FreeText}" />
-                    <TextBlock Classes="faint" FontSize="12" Text="{Binding TotalsText}" />
+            <!-- Drop target, while a file is dragged over the window -->
+            <Border x:Name="DropOverlay" IsVisible="False" Margin="16" CornerRadius="{StaticResource PanelRadius}"
+                    Background="#E60E0F11" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+                    <c:StrokeIcon Data="{StaticResource IconDownload}" Width="36" Height="36" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Classes="title" Text="Drop to add" HorizontalAlignment="Center" />
                 </StackPanel>
             </Border>
+        </Panel>
 
-            <!-- Shown over everything when the engine cannot start, or while quitting -->
-            <Border x:Name="Curtain" Grid.RowSpan="4" IsVisible="False" Background="{StaticResource BgBrush}">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="520">
-                    <TextBlock x:Name="CurtainTitle" Classes="h1" TextWrapping="Wrap" />
-                    <TextBlock x:Name="CurtainText" Classes="dim" TextWrapping="Wrap" />
+        <!-- Status bar -->
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto" Margin="16,0">
+                <StackPanel Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <c:StrokeIcon Data="{StaticResource IconWorld}" Width="13" Height="13" Foreground="{StaticResource TextFaintBrush}" />
+                        <TextBlock Classes="caption num" Text="{Binding DhtText}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <c:StrokeIcon Data="{StaticResource IconPlug}" Width="13" Height="13" Foreground="{StaticResource TextFaintBrush}" />
+                        <TextBlock Classes="caption num" Text="{Binding PortText}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <c:StrokeIcon Data="{StaticResource IconUsers}" Width="13" Height="13" Foreground="{StaticResource TextFaintBrush}" />
+                        <TextBlock Classes="caption num" Text="{Binding ConnectionsText}" />
+                    </StackPanel>
                 </StackPanel>
-            </Border>
-        </Grid>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="22" VerticalAlignment="Center">
+                    <TextBlock Classes="caption num" Text="{Binding TotalsText}" />
+                    <TextBlock Classes="caption num" Text="{Binding FreeText}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Shown over everything when the engine cannot start, or while quitting -->
+        <Border x:Name="Curtain" Grid.RowSpan="3" Grid.ColumnSpan="2" IsVisible="False" Background="{StaticResource BgBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" MaxWidth="520">
+                <c:AppMark Width="48" Height="48" HorizontalAlignment="Center" />
+                <TextBlock x:Name="CurtainTitle" Classes="title" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock x:Name="CurtainText" Classes="dim" TextWrapping="Wrap" TextAlignment="Center" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

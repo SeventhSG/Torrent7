@@ -1,21 +1,26 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:Torrent7.Controls"
         x:Class="Torrent7.Views.RemoveDialog"
-        Title="Remove torrent"
+        Title="Remove"
         Icon="avares://Torrent7/Assets/Torrent7.ico"
-        Width="460" SizeToContent="Height" CanResize="False"
-        WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False">
+        Width="480" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
 
-    <StackPanel Margin="24,20" Spacing="12">
-        <TextBlock Classes="h2" Text="Remove this torrent from the list?" />
-        <TextBlock x:Name="NameText" Classes="dim" TextWrapping="Wrap" />
-        <CheckBox x:Name="DeleteBox" Content="Also delete the downloaded files from disk" />
-        <TextBlock x:Name="DeleteWarning" Classes="danger" FontSize="12" TextWrapping="Wrap" IsVisible="False"
-                   Text="The files go straight away, not to the recycle bin." />
+    <StackPanel Margin="24,20,24,20" Spacing="12">
+        <TextBlock x:Name="Heading" Classes="title" FontSize="17" TextWrapping="Wrap" />
+        <TextBlock x:Name="NameText" Classes="dim" TextWrapping="Wrap" MaxHeight="60" TextTrimming="CharacterEllipsis" />
+        <Border x:Name="DeleteRow" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
+                CornerRadius="{StaticResource PanelRadius}" Padding="14,10" Margin="0,4,0,0">
+            <StackPanel Spacing="4">
+                <CheckBox x:Name="DeleteBox" Content="Also delete the downloaded files" />
+                <TextBlock x:Name="DeleteWarning" Classes="danger" FontSize="12" TextWrapping="Wrap" IsVisible="False" Margin="28,0,0,0"
+                           Text="They are deleted for good, not moved to the recycle bin." />
+            </StackPanel>
+        </Border>
         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,6,0,0">
-            <Button Classes="ghost" Content="Cancel" Click="OnCancel" IsCancel="True" />
-            <Button x:Name="RemoveButton" Content="Remove" Click="OnRemove" IsDefault="True" />
+            <Button Classes="tool" Content="Cancel" Click="OnCancel" IsCancel="True" />
+            <Button x:Name="RemoveButton" Content="Remove" Click="OnRemove" IsDefault="True" Padding="18,0" />
         </StackPanel>
     </StackPanel>
 </Window>

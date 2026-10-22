@@ -10,3 +10,9 @@ namespace Torrent7.Core;
 [JsonSerializable(typeof(AppSettings))]
 [JsonSerializable(typeof(List<TorrentRecord>))]
 internal sealed partial class JsonContext : JsonSerializerContext;
+
+/// <summary>The generated serializer for settings, for the app to compare settings without reflection.</summary>
+public static class JsonAccess
+{
+    public static System.Text.Json.Serialization.Metadata.JsonTypeInfo<AppSettings> Settings => JsonContext.Default.AppSettings;
+}

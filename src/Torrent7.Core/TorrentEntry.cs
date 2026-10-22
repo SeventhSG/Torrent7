@@ -68,6 +68,9 @@ public sealed class TorrentEntry
         {
             if (Moving) return EntryStatus.Moving;
             if (ErrorText != null || Manager.State == TorrentState.Error) return EntryStatus.Error;
+            // Paused means paused from the moment it is asked, not once the last peer has hung up.
+            if (!Record.WantsToRun && Manager.State is not (TorrentState.Hashing or TorrentState.HashingPaused or TorrentState.FetchingHashes))
+                return IsComplete ? EntryStatus.Done : EntryStatus.Paused;
             switch (Manager.State)
             {
                 case TorrentState.Hashing:
