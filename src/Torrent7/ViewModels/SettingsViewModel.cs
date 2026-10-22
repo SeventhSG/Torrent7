@@ -151,5 +151,18 @@ public sealed partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void UnregisterHandlers()
+    {
+        try
+        {
+            IntegrationStatus = DesktopIntegration.Unregister();
+        }
+        catch (Exception ex)
+        {
+            IntegrationStatus = "Could not remove: " + ex.Message;
+        }
+    }
+
+    [RelayCommand]
     private Task OpenDataFolderAsync() => shell.OpenAsync(AppPaths.DataDir);
 }

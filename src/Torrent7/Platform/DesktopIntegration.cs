@@ -19,6 +19,69 @@ public static class DesktopIntegration
         return "Not supported on this system.";
     }
 
+    /// <summary>Takes back everything <see cref="Register"/> wrote, and nothing it did not.</summary>
+    public static string Unregister()
+    {
+        if (OperatingSystem.IsWindows()) return UnregisterWindows();
+        if (OperatingSystem.IsLinux()) return UnregisterLinux();
+        return "Not supported on this system.";
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string UnregisterWindows()
+    {
+        using (var classes = Registry.CurrentUser.OpenSubKey(@"Software\Classes", writable: true))
+        {
+            if (classes != null)
+            {
+                classes.DeleteSubKeyTree("Torrent7.magnet", throwOnMissingSubKey: false);
+                classes.DeleteSubKeyTree("Torrent7.torrent", throwOnMissingSubKey: false);
+
+                // The plain magnet: key only goes if it is still ours.
+                var current = classes.OpenSubKey(@"magnet\shell\open\command")?.GetValue("") as string;
+                if (current != null && current.Contains("Torrent7", StringComparison.OrdinalIgnoreCase))
+                    classes.DeleteSubKeyTree("magnet", throwOnMissingSubKey: false);
+
+                var leftovers = 0;
+                using (var ext = classes.OpenSubKey(".torrent", writable: true))
+                {
+                    if (ext != null)
+                    {
+                        using (var open = ext.OpenSubKey("OpenWithProgids", writable: true))
+                        {
+                            open?.DeleteValue("Torrent7.torrent", throwOnMissingValue: false);
+                            leftovers += open?.ValueCount ?? 0;
+                        }
+                        if (ext.GetValue("") as string == "Torrent7.torrent") ext.DeleteValue("", throwOnMissingValue: false);
+                        leftovers += ext.ValueCount + ext.GetSubKeyNames().Count(n => n != "OpenWithProgids");
+                    }
+                }
+                // Drop the .torrent key only when nothing but our own entries was ever in it.
+                if (leftovers == 0) classes.DeleteSubKeyTree(".torrent", throwOnMissingSubKey: false);
+            }
+        }
+        Registry.CurrentUser.DeleteSubKeyTree(@"Software\Torrent7", throwOnMissingSubKey: false);
+        using (var reg = Registry.CurrentUser.OpenSubKey(@"Software\RegisteredApplications", writable: true))
+            reg?.DeleteValue("Torrent7", throwOnMissingValue: false);
+
+        SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
+        Log.Info("removed magnet and .torrent handlers for the current user");
+        return "Removed. Magnet links and .torrent files no longer open Torrent7.";
+    }
+
+    private static string UnregisterLinux()
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var dataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        if (string.IsNullOrEmpty(dataHome)) dataHome = Path.Combine(home, ".local", "share");
+        var apps = Path.Combine(dataHome, "applications");
+        File.Delete(Path.Combine(apps, "torrent7.desktop"));
+        File.Delete(Path.Combine(dataHome, "icons", "hicolor", "256x256", "apps", "torrent7.png"));
+        TryRun("update-desktop-database", $"\"{apps}\"");
+        Log.Info("removed torrent7.desktop");
+        return "Removed from the applications menu.";
+    }
+
     [SupportedOSPlatform("windows")]
     private static string RegisterWindows(string exe)
     {

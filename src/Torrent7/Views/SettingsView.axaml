@@ -175,7 +175,11 @@
                 <Grid Classes="row" ColumnDefinitions="240,*">
                     <TextBlock Classes="key" Text="Links and files" />
                     <StackPanel Grid.Column="1" Spacing="4">
-                        <Button HorizontalAlignment="Left" Content="{Binding IntegrationLabel}" Command="{Binding RegisterHandlersCommand}" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Button Content="{Binding IntegrationLabel}" Command="{Binding RegisterHandlersCommand}" />
+                            <Button Classes="ghost" Content="Remove" Command="{Binding UnregisterHandlersCommand}"
+                                    ToolTip.Tip="Undo it: links and files go back to whatever opened them before" />
+                        </StackPanel>
                         <TextBlock Classes="hint" Text="{Binding IntegrationStatus}" />
                     </StackPanel>
                 </Grid>
